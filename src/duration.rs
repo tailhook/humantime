@@ -158,13 +158,14 @@ impl<'a> Parser<'a> {
 /// * `months`, `month`, `M` -- defined as 30.44 days
 /// * `years`, `year`, `y` -- defined as 365.25 days
 ///
-/// Examples:
+/// # Examples
 ///
 /// ```
 /// use std::time::Duration;
 /// use humantime::parse_duration;
 ///
 /// assert_eq!(parse_duration("2h 37min"), Ok(Duration::new(9420, 0)));
+/// assert_eq!(parse_duration("32ms"), Ok(Duration::new(0, 32_000_000)));
 /// ```
 pub fn parse_duration(s: &str) -> Result<Duration, Error> {
     Parser {

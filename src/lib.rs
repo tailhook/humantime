@@ -6,5 +6,8 @@
 #[macro_use] extern crate quick_error;
 
 mod duration;
+mod wrapper;
 
 pub use duration::{parse_duration, Error as DurationError};
+pub use wrapper::Duration;
+

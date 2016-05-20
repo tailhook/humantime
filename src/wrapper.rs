@@ -9,6 +9,8 @@ use duration::{parse_duration, Error};
 /// This is useful if you want to use it somewhere where `FromStr` is
 /// expected.
 ///
+/// See `parse_duration` for the description of the format.
+///
 /// # Example
 ///
 /// ```
@@ -17,6 +19,7 @@ use duration::{parse_duration, Error};
 /// x = "12h 5min 2ns".parse::<humantime::Duration>().unwrap().into();
 /// assert_eq!(x, Duration::new(12*3600 + 5*60, 2))
 /// ```
+///
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Duration(StdDuration);
 

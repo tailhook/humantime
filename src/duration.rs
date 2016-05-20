@@ -3,24 +3,43 @@ use std::time::Duration;
 use std::error::Error as StdError;
 
 quick_error! {
+    /// Error parsing human-friendly duration
     #[derive(Debug, PartialEq)]
     pub enum Error {
+        /// Invalid character during parsing
+        ///
+        /// More specifically anything that is not alphanumeric is prohibited
         InvalidCharacter(offset: usize) {
             display("invalid character at {}", offset)
             description("invalid character")
         }
+        /// Non-numeric value where number is expected
+        ///
+        /// This usually means that either time unit is broken into words,
+        /// e.g. `m sec` instead of `msec`, or just number is omitted,
+        /// for example `2 hours min` instead of `2 hours 1 min`
         NumberExpected(offset: usize) {
             display("expected number at {}", offset)
             description("expected number")
         }
+        /// Unit in the number is not one of allowed units
+        ///
+        /// See documentation of `parse_duration` for the list of supported
+        /// time units.
         UnknownUnit(start: usize, end: usize) {
             display("unknown unit at {}-{}", start, end)
             description("unknown unit")
         }
+        /// The numeric value is too large
+        ///
+        /// Usually this means value is too large to be useful. If user writes
+        /// data in subsecond units. Then the maximum is about 3k years. When
+        /// using seconds, or larger, the limit is even larger.
         NumberOverflow {
             display(self_) -> ("{}", self_.description())
             description("number is too large")
         }
+        /// The value was an empty string (or only whitespace)
         Empty {
             display(self_) -> ("{}", self_.description())
             description("value was empty")

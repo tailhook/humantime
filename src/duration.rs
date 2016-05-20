@@ -41,13 +41,13 @@ quick_error! {
         /// The numeric value is too large
         ///
         /// Usually this means value is too large to be useful. If user writes
-        /// data in subsecond units. Then the maximum is about 3k years. When
-        /// using seconds, or larger, the limit is even larger.
+        /// data in subsecond units, then the maximum is about 3k years. When
+        /// using seconds, or larger units, the limit is even larger.
         NumberOverflow {
             display(self_) -> ("{}", self_.description())
             description("number is too large")
         }
-        /// The value was an empty string (or only whitespace)
+        /// The value was an empty string (or consists only whitespace)
         Empty {
             display(self_) -> ("{}", self_.description())
             description("value was empty")
@@ -174,6 +174,7 @@ impl<'a> Parser<'a> {
 ///
 /// The duration object is a concatenation of time spans. Where each time
 /// span is an integer number and a suffix. Supported suffixes:
+///
 /// * `nsec`, `ns` -- microseconds
 /// * `usec`, `us` -- microseconds
 /// * `msec`, `ms` -- milliseconds

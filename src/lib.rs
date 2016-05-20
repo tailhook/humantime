@@ -2,6 +2,8 @@
 //!
 //! Currently this only currently implements parsing of duration. Relative and
 //! absolute times may be added in future.
+//!
+//! The format of values accpted is described in docstring of `parse_duration`.
 
 #[macro_use] extern crate quick_error;
 

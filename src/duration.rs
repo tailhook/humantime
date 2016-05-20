@@ -4,7 +4,7 @@ use std::error::Error as StdError;
 
 quick_error! {
     /// Error parsing human-friendly duration
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub enum Error {
         /// Invalid character during parsing
         ///

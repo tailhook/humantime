@@ -20,7 +20,7 @@ use duration::{parse_duration, Error};
 /// assert_eq!(x, Duration::new(12*3600 + 5*60, 2))
 /// ```
 ///
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Duration(StdDuration);
 
 impl AsRef<StdDuration> for Duration {

@@ -1,0 +1,35 @@
+commands:
+
+  cargo: !Command
+    description: Run any cargo command
+    container: ubuntu
+    run: [cargo]
+
+  make: !Command
+    description: Build the library
+    container: ubuntu
+    run: [cargo, build]
+
+  test: !Command
+    description: Test the library
+    container: ubuntu
+    environ: { RUST_BACKTRACE: 1 }
+    run: [cargo, test]
+
+containers:
+
+  ubuntu:
+    setup:
+    - !Ubuntu trusty
+    - !UbuntuUniverse ~
+    - !Install [make, checkinstall, wget, ca-certificates,
+                libssl-dev, build-essential]
+
+    - !TarInstall
+      url: "http://static.rust-lang.org/dist/rust-1.8.0-x86_64-unknown-linux-gnu.tar.gz"
+      script: "./install.sh --prefix=/usr \
+               --components=rustc,rust-std-x86_64-unknown-linux-gnu,cargo"
+
+    environ:
+      HOME: /work/target
+      USER: pc

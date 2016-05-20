@@ -1,0 +1,23 @@
+[package]
+name = "humantime"
+description = """
+    A human friendly format parser for std::time::Duration.
+"""
+license = "MIT/Apache-2.0"
+readme = "README.rst"
+keywords = ["linux", "container", "namespace", "docker", "process"]
+homepage = "http://github.com/tailhook/humantime"
+documentation = "http://tailhook.github.io/humantime/"
+version = "0.1.0"
+authors = ["paul@colomiets.name"]
+
+[dependencies]
+quick-error = "1.0.0"
+
+[dev-dependencies]
+argparse = "0.2.1"
+
+[lib]
+name = "humantime"
+path = "src/lib.rs"
+

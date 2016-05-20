@@ -9,6 +9,8 @@ quick_error! {
         /// Invalid character during parsing
         ///
         /// More specifically anything that is not alphanumeric is prohibited
+        ///
+        /// The field is an byte offset of the character in the string.
         InvalidCharacter(offset: usize) {
             display("invalid character at {}", offset)
             description("invalid character")
@@ -18,6 +20,9 @@ quick_error! {
         /// This usually means that either time unit is broken into words,
         /// e.g. `m sec` instead of `msec`, or just number is omitted,
         /// for example `2 hours min` instead of `2 hours 1 min`
+        ///
+        /// The field is an byte offset of the errorneous character
+        /// in the string.
         NumberExpected(offset: usize) {
             display("expected number at {}", offset)
             description("expected number")
@@ -26,6 +31,9 @@ quick_error! {
         ///
         /// See documentation of `parse_duration` for the list of supported
         /// time units.
+        ///
+        /// The two fields are start and end (exclusive) of the slice from
+        /// the original string, containing errorneous value
         UnknownUnit(start: usize, end: usize) {
             display("unknown unit at {}-{}", start, end)
             description("unknown unit")

@@ -8,7 +8,7 @@ readme = "README.rst"
 keywords = ["linux", "container", "namespace", "docker", "process"]
 homepage = "http://github.com/tailhook/humantime"
 documentation = "http://tailhook.github.io/humantime/"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["paul@colomiets.name"]
 
 [dependencies]

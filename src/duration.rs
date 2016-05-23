@@ -99,12 +99,13 @@ impl<'a> Parser<'a> {
         -> Result<(), Error>
     {
         let (mut sec, nsec) = match &self.src[start..end] {
-            "nsec" | "ns" => (0u64, n),
+            "nanos" | "nsec" | "ns" => (0u64, n),
             "usec" | "us" => (0u64, try!(n.mul(1000))),
-            "msec" | "ms" => (0u64, try!(n.mul(1000_000))),
-            "seconds" | "second" | "sec" | "s" => (n, 0),
-            "minutes" | "minute" | "min" | "m" => (try!(n.mul(60)), 0),
-            "hours" | "hour" | "hr" | "h" => (try!(n.mul(3600)), 0),
+            "millis" | "msec" | "ms" => (0u64, try!(n.mul(1000_000))),
+            "seconds" | "second" | "secs" | "sec" | "s" => (n, 0),
+            "minutes" | "minute" | "min" | "mins" | "m"
+            => (try!(n.mul(60)), 0),
+            "hours" | "hour" | "hr" | "hrs" | "h" => (try!(n.mul(3600)), 0),
             "days" | "day" | "d" => (try!(n.mul(86400)), 0),
             "weeks" | "week" | "w" => (try!(n.mul(86400*7)), 0),
             "months" | "month" | "M" => (try!(n.mul(2630016)), 0), // 30.44d
@@ -206,21 +207,26 @@ pub fn parse_duration(s: &str) -> Result<Duration, Error> {
 #[test]
 fn test_units() {
     assert_eq!(parse_duration("17nsec"), Ok(Duration::new(0, 17)));
+    assert_eq!(parse_duration("17nanos"), Ok(Duration::new(0, 17)));
     assert_eq!(parse_duration("33ns"), Ok(Duration::new(0, 33)));
     assert_eq!(parse_duration("3usec"), Ok(Duration::new(0, 3000)));
     assert_eq!(parse_duration("78us"), Ok(Duration::new(0, 78000)));
     assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31000000)));
+    assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31000000)));
     assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6000000)));
     assert_eq!(parse_duration("3000s"), Ok(Duration::new(3000, 0)));
     assert_eq!(parse_duration("300sec"), Ok(Duration::new(300, 0)));
+    assert_eq!(parse_duration("300secs"), Ok(Duration::new(300, 0)));
     assert_eq!(parse_duration("50seconds"), Ok(Duration::new(50, 0)));
     assert_eq!(parse_duration("1second"), Ok(Duration::new(1, 0)));
     assert_eq!(parse_duration("100m"), Ok(Duration::new(6000, 0)));
     assert_eq!(parse_duration("12min"), Ok(Duration::new(720, 0)));
+    assert_eq!(parse_duration("12mins"), Ok(Duration::new(720, 0)));
     assert_eq!(parse_duration("1minute"), Ok(Duration::new(60, 0)));
     assert_eq!(parse_duration("7minutes"), Ok(Duration::new(420, 0)));
     assert_eq!(parse_duration("2h"), Ok(Duration::new(7200, 0)));
     assert_eq!(parse_duration("7hr"), Ok(Duration::new(25200, 0)));
+    assert_eq!(parse_duration("7hrs"), Ok(Duration::new(25200, 0)));
     assert_eq!(parse_duration("1hour"), Ok(Duration::new(3600, 0)));
     assert_eq!(parse_duration("24hours"), Ok(Duration::new(86400, 0)));
     assert_eq!(parse_duration("1day"), Ok(Duration::new(86400, 0)));

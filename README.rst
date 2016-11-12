@@ -2,7 +2,7 @@
 Human Time
 ==========
 
-:Status: beta
+:Status: stable
 :Documentation: http://tailhook.github.io/humantime/
 
 Human-friendly time parser. Curently only parses something like

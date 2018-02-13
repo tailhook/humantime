@@ -1,15 +1,17 @@
-==========
 Human Time
 ==========
 
-:Status: stable
-:Documentation: http://tailhook.github.io/humantime/
+**Status: stable**
+
+[Documentation](https://docs.rs/humantime) |
+[Github](https://github.com/tailhook/humantime) |
+[Crate](https://crates.io/crates/humantime)
+
 
 Human-friendly time parser. Curently only parses something like
 ``12days 2hours 1min`` into ``std::time::Duration``.
 
 
-=======
 License
 =======
 
@@ -20,7 +22,6 @@ Licensed under either of
 
 at your option.
 
-------------
 Contribution
 ------------
 

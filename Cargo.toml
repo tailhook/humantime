@@ -4,10 +4,10 @@ description = """
     A human friendly format parser for std::time::Duration.
 """
 license = "MIT/Apache-2.0"
-readme = "README.rst"
+readme = "README.md"
 keywords = ["time", "human", "human-friendly", "parser", "duration"]
-homepage = "http://github.com/tailhook/humantime"
-documentation = "http://tailhook.github.io/humantime/"
+homepage = "https://github.com/tailhook/humantime"
+documentation = "https://docs.rs/humantime"
 version = "1.0.0"
 authors = ["paul@colomiets.name"]
 

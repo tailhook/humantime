@@ -9,7 +9,8 @@
 
 mod duration;
 mod wrapper;
+mod date;
 
 pub use duration::{parse_duration, Error as DurationError};
 pub use wrapper::Duration;
-
+pub use date::parse_iso_datetime_seconds;

@@ -41,11 +41,16 @@ pub fn parse_iso_datetime_seconds(s: &str) -> Result<SystemTime, Error> {
     let day = two_digits(b[8], b[9])?;
     let hour = two_digits(b[11], b[12])?;
     let minute = two_digits(b[14], b[15])?;
-    let second = two_digits(b[17], b[18])?;
+    let mut second = two_digits(b[17], b[18])?;
 
-    if year < 1970 {
+    // TODO(tailhook) should we check that 24 is only used for 24:00:00 ?
+    if year < 1970 || hour > 24 || minute > 59 || second > 60 {
         return Err(Error::OutOfRange);
     }
+    // TODO(tailhook) should we check that leaps second is only on midnight ?
+    if second == 60 {
+        second = 59
+    };
     let leap_years = ((year - 1) - 1968) / 4 - ((year - 1) - 1900) / 100 +
                      ((year - 1) - 1600) / 400;
     let leap = is_leap_year(year);
@@ -87,6 +92,7 @@ fn is_leap_year(y: u64) -> bool {
 mod test {
     extern crate time;
     extern crate rand;
+
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
     use super::parse_iso_datetime_seconds;
@@ -100,6 +106,10 @@ mod test {
 
     #[test]
     fn smoke_tests() {
+        assert_eq!(parse_iso_datetime_seconds("1970-01-01T00:00:00Z").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 0));
+        assert_eq!(parse_iso_datetime_seconds("1970-01-01T00:00:01Z").unwrap(),
+                   UNIX_EPOCH + Duration::new(1, 0));
         assert_eq!(parse_iso_datetime_seconds("2018-02-13T23:08:32Z").unwrap(),
                    UNIX_EPOCH + Duration::new(1518563312, 0));
         assert_eq!(parse_iso_datetime_seconds("2012-01-01T00:00:00Z").unwrap(),
@@ -109,6 +119,12 @@ mod test {
     fn upper_bound() {
         assert_eq!(parse_iso_datetime_seconds("9999-12-31T23:59:59Z").unwrap(),
                    UNIX_EPOCH + Duration::new(253402300800-1, 0));
+    }
+
+    #[test]
+    fn leap_second() {
+        assert_eq!(parse_iso_datetime_seconds("2016-12-31T23:59:60Z").unwrap(),
+                   UNIX_EPOCH + Duration::new(1483228799, 0));
     }
 
     #[test]

@@ -26,6 +26,11 @@ fn two_digits(b1: u8, b2: u8) -> Result<u64, Error> {
 }
 
 /// Parse rfc3339 timestamp ``2018-02-14T00:28:07Z``
+///
+/// Supported feature: any precision of fractional
+/// digits ``2018-02-14T00:28:07.133Z``.
+///
+/// Unsupported feature: localized timestamps. Only UTC is supported.
 pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
     if s.len() < "2018-02-14T00:28:07Z".len() {
         return Err(Error::InvalidFormat);
@@ -69,15 +74,15 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
         12 => (334, 31),
         _ => return Err(Error::OutOfRange),
     };
+    if day > mdays || day == 0 {
+        return Err(Error::OutOfRange);
+    }
     ydays += day - 1;
     if is_leap_year(year) && month > 2 {
         ydays += 1;
     }
     let days = (year - 1970) * 365 + leap_years + ydays;
 
-    if day > mdays || day == 0 {
-        return Err(Error::OutOfRange);
-    }
     let time = second + minute * 60 + hour * 3600;
 
     let mut nanos = 0;
@@ -193,5 +198,64 @@ mod test {
     fn milliseconds() {
         assert_eq!(parse_rfc3339("1970-01-01T00:00:00.123Z").unwrap(),
                    UNIX_EPOCH + Duration::new(0, 123000000));
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn zero_month() {
+        parse_rfc3339("1970-00-01T00:00:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_month() {
+        parse_rfc3339("1970-32-01T00:00:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn zero_day() {
+        parse_rfc3339("1970-01-00T00:00:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_day() {
+        parse_rfc3339("1970-12-35T00:00:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_day2() {
+        parse_rfc3339("1970-02-30T00:00:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_second() {
+        parse_rfc3339("1970-12-30T00:00:78Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_minute() {
+        parse_rfc3339("1970-12-30T00:78:00Z").unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected="OutOfRange")]
+    fn big_hour() {
+        parse_rfc3339("1970-12-30T24:00:00Z").unwrap();
+    }
+
+    #[test]
+    fn break_data() {
+        for pos in 0.."2016-12-31T23:59:60Z".len() {
+            let mut s = String::from("2016-12-31T23:59:60Z");
+            unsafe {
+                s.as_bytes_mut()[pos] = b'x';
+            }
+            parse_rfc3339("1970-12-30T24:00:00Z").unwrap_err();
+        }
     }
 }

@@ -35,9 +35,32 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
     if s.len() < "2018-02-14T00:28:07Z".len() {
         return Err(Error::InvalidFormat);
     }
+    let b = s.as_bytes();
+    if b[10] != b'T' || b[b.len()-1] != b'Z' {
+        return Err(Error::InvalidFormat);
+    }
+    return parse_rfc3339_weak(s);
+}
+
+/// Parse rfc3339-like timestamp ``2018-02-14 00:28:07``
+///
+/// Supported features:
+/// 1. Any precision of fractional digits ``2018-02-14 00:28:07.133``.
+/// 2. Supports timestamp with or without either of ``T`` or ``Z``
+/// 3. Anything valid for ``parse_3339`` is valid for this function
+///
+/// Unsupported feature: localized timestamps. Only UTC is supported, even if
+/// ``Z`` is not specified.
+///
+/// This function is intended to use for parsing input. Whereas
+/// ``parse_rfc3339`` is for input generated programmatically.
+pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
+    if s.len() < "2018-02-14T00:28:07".len() {
+        return Err(Error::InvalidFormat);
+    }
     let b = s.as_bytes();  // for careless slicing
-    if b[4] != b'-' || b[7] != b'-' || b[10] != b'T' ||
-       b[13] != b':' || b[16] != b':' || (b[19] != b'Z' && b[19] != b'.')
+    if b[4] != b'-' || b[7] != b'-' || (b[10] != b'T' && b[10] != b' ') ||
+       b[13] != b':' || b[16] != b':'
     {
         return Err(Error::InvalidFormat);
     }
@@ -87,17 +110,25 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
 
     let mut nanos = 0;
     let mut mult = 100_000_000;
-    if b[19] == b'.' {
-        for idx in 20..b.len()-1 {
+    if b.get(19) == Some(&b'.') {
+        for idx in 20..b.len() {
+            if b[idx] == b'Z' {
+                if idx == b.len()-1 {
+                    break;
+                } else {
+                    return Err(Error::InvalidDigit);
+                }
+            }
             if b[idx] < b'0' || b[idx] > b'9' {
                 return Err(Error::InvalidDigit);
             }
             nanos += mult * (b[idx] - b'0') as u32;
             mult /= 10;
         }
-    }
-    if b[b.len()-1] != b'Z' {
-        return Err(Error::InvalidFormat);
+    } else {
+        if b.len() != 19 && (b.len() > 20 || b[19] != b'Z') {
+            return Err(Error::InvalidFormat);
+        }
     }
 
     return Ok(UNIX_EPOCH + Duration::new(time + days * 86400, nanos));
@@ -114,7 +145,7 @@ mod test {
 
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
-    use super::parse_rfc3339;
+    use super::{parse_rfc3339, parse_rfc3339_weak};
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
         let s = time::at_utc(time::Timespec { sec: sec as i64, nsec: 0 })
@@ -257,5 +288,28 @@ mod test {
             }
             parse_rfc3339("1970-12-30T24:00:00Z").unwrap_err();
         }
+    }
+
+    #[test]
+    fn weak_smoke_tests() {
+        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 0));
+        parse_rfc3339("1970-01-01 00:00:00").unwrap_err();
+
+        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00.000123").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 123000));
+        parse_rfc3339("1970-01-01 00:00:00.000123").unwrap_err();
+
+        assert_eq!(parse_rfc3339_weak("1970-01-01T00:00:00.000123").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 123000));
+        parse_rfc3339("1970-01-01T00:00:00.000123").unwrap_err();
+
+        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00.000123Z").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 123000));
+        parse_rfc3339("1970-01-01 00:00:00.000123Z").unwrap_err();
+
+        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00Z").unwrap(),
+                   UNIX_EPOCH + Duration::new(0, 0));
+        parse_rfc3339("1970-01-01 00:00:00Z").unwrap_err();
     }
 }

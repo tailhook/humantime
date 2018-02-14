@@ -13,4 +13,4 @@ mod date;
 
 pub use duration::{parse_duration, Error as DurationError};
 pub use wrapper::Duration;
-pub use date::parse_rfc3339_seconds;
+pub use date::parse_rfc3339;

@@ -8,6 +8,10 @@
 //!
 //! Timestamp parsing/formatting is super-fast because format is basically
 //! fixed.
+//!
+//! See [serde-humantime] for serde integration.
+//!
+//! [serde-humantime]: https://docs.rs/serde-humantime/0.1.1/serde_humantime/
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 

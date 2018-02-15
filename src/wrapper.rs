@@ -1,8 +1,10 @@
 use std::str::FromStr;
 use std::ops::Deref;
-use std::time::Duration as StdDuration;
+use std::fmt;
+use std::time::{Duration as StdDuration, SystemTime};
 
-use duration::{parse_duration, Error};
+use duration::{self, parse_duration};
+use date::{self, parse_rfc3339_weak, format_rfc3339};
 
 /// A wrapper for duration that has `FromStr` implementation
 ///
@@ -23,6 +25,27 @@ use duration::{parse_duration, Error};
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Duration(StdDuration);
 
+/// A wrapper for SystemTime that has `FromStr` implementation
+///
+/// This is useful if you want to use it somewhere where `FromStr` is
+/// expected.
+///
+/// See `parse_rfc3339_weak` for the description of the format. The "weak"
+/// format is used as it's more pemissive for human input as this is the
+/// expected use of the type (e.g. command-line parsing).
+///
+/// # Example
+///
+/// ```
+/// use std::time::SystemTime;
+/// let x: SystemTime;
+/// x = "2018-02-16T00:31:37Z".parse::<humantime::Timestamp>().unwrap().into();
+/// assert_eq!(humantime::format_rfc3339(x).to_string(), "2018-02-16T00:31:37Z");
+/// ```
+///
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct Timestamp(SystemTime);
+
 impl AsRef<StdDuration> for Duration {
     fn as_ref(&self) -> &StdDuration { &self.0 }
 }
@@ -41,8 +64,39 @@ impl From<StdDuration> for Duration {
 }
 
 impl FromStr for Duration {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Duration, Error> {
+    type Err = duration::Error;
+    fn from_str(s: &str) -> Result<Duration, Self::Err> {
         parse_duration(s).map(Duration)
+    }
+}
+
+
+impl AsRef<SystemTime> for Timestamp {
+    fn as_ref(&self) -> &SystemTime { &self.0 }
+}
+
+impl Deref for Timestamp {
+    type Target = SystemTime;
+    fn deref(&self) -> &SystemTime { &self.0 }
+}
+
+impl Into<SystemTime> for Timestamp {
+    fn into(self) -> SystemTime { self.0 }
+}
+
+impl From<SystemTime> for Timestamp {
+    fn from(dur: SystemTime) -> Timestamp { Timestamp(dur) }
+}
+
+impl FromStr for Timestamp {
+    type Err = date::Error;
+    fn from_str(s: &str) -> Result<Timestamp, Self::Err> {
+        parse_rfc3339_weak(s).map(Timestamp)
+    }
+}
+
+impl fmt::Display for Timestamp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        format_rfc3339(self.0).fmt(f)
     }
 }

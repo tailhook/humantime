@@ -171,7 +171,7 @@ impl<'a> Parser<'a> {
 
 }
 
-/// Parse duration object
+/// Parse duration object `1hour 12min 5s`
 ///
 /// The duration object is a concatenation of time spans. Where each time
 /// span is an integer number and a suffix. Supported suffixes:

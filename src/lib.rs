@@ -1,9 +1,13 @@
-//! Human-friendly time parser
+//! Human-friendly time parser and formatter
 //!
-//! Currently this only currently implements parsing of duration. Relative and
-//! absolute times may be added in future.
+//! Features:
 //!
-//! The format of values accpted is described in docstring of `parse_duration`.
+//! * Parses durations in free form like `15days 2min 2s`
+//! * Parses and formats timestamp in `rfc3339` format: `2018-01-01T12:53:00Z`
+//! * Parses timestamps in a weaker format: `2018-01-01 12:53:00`
+//!
+//! Timestamp parsing/formatting is super-fast because format is basically
+//! fixed.
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 

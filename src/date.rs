@@ -28,6 +28,7 @@ enum Precision {
     Nanos,
 }
 
+/// A wrapper type that allows you to Display a SystemTime
 #[derive(Debug)]
 pub struct Rfc3339Timestamp(SystemTime, Precision);
 

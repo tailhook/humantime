@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::Chars;
 use std::time::Duration;
 use std::error::Error as StdError;
@@ -53,7 +54,12 @@ quick_error! {
             description("value was empty")
         }
     }
+
 }
+
+/// A wrapper type that allows you to Display a Duration
+#[derive(Debug)]
+pub struct FormattedDuration(Duration);
 
 trait OverflowOp: Sized {
     fn mul(self, other: Self) -> Result<Self, Error>;
@@ -204,74 +210,202 @@ pub fn parse_duration(s: &str) -> Result<Duration, Error> {
     }.parse()
 }
 
-#[test]
-fn test_units() {
-    assert_eq!(parse_duration("17nsec"), Ok(Duration::new(0, 17)));
-    assert_eq!(parse_duration("17nanos"), Ok(Duration::new(0, 17)));
-    assert_eq!(parse_duration("33ns"), Ok(Duration::new(0, 33)));
-    assert_eq!(parse_duration("3usec"), Ok(Duration::new(0, 3000)));
-    assert_eq!(parse_duration("78us"), Ok(Duration::new(0, 78000)));
-    assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31000000)));
-    assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31000000)));
-    assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6000000)));
-    assert_eq!(parse_duration("3000s"), Ok(Duration::new(3000, 0)));
-    assert_eq!(parse_duration("300sec"), Ok(Duration::new(300, 0)));
-    assert_eq!(parse_duration("300secs"), Ok(Duration::new(300, 0)));
-    assert_eq!(parse_duration("50seconds"), Ok(Duration::new(50, 0)));
-    assert_eq!(parse_duration("1second"), Ok(Duration::new(1, 0)));
-    assert_eq!(parse_duration("100m"), Ok(Duration::new(6000, 0)));
-    assert_eq!(parse_duration("12min"), Ok(Duration::new(720, 0)));
-    assert_eq!(parse_duration("12mins"), Ok(Duration::new(720, 0)));
-    assert_eq!(parse_duration("1minute"), Ok(Duration::new(60, 0)));
-    assert_eq!(parse_duration("7minutes"), Ok(Duration::new(420, 0)));
-    assert_eq!(parse_duration("2h"), Ok(Duration::new(7200, 0)));
-    assert_eq!(parse_duration("7hr"), Ok(Duration::new(25200, 0)));
-    assert_eq!(parse_duration("7hrs"), Ok(Duration::new(25200, 0)));
-    assert_eq!(parse_duration("1hour"), Ok(Duration::new(3600, 0)));
-    assert_eq!(parse_duration("24hours"), Ok(Duration::new(86400, 0)));
-    assert_eq!(parse_duration("1day"), Ok(Duration::new(86400, 0)));
-    assert_eq!(parse_duration("2days"), Ok(Duration::new(172800, 0)));
-    assert_eq!(parse_duration("365d"), Ok(Duration::new(31536000, 0)));
-    assert_eq!(parse_duration("1week"), Ok(Duration::new(604800, 0)));
-    assert_eq!(parse_duration("7weeks"), Ok(Duration::new(4233600, 0)));
-    assert_eq!(parse_duration("52w"), Ok(Duration::new(31449600, 0)));
-    assert_eq!(parse_duration("1month"), Ok(Duration::new(2630016, 0)));
-    assert_eq!(parse_duration("3months"), Ok(Duration::new(3*2630016, 0)));
-    assert_eq!(parse_duration("12M"), Ok(Duration::new(31560192, 0)));
-    assert_eq!(parse_duration("1year"), Ok(Duration::new(31557600, 0)));
-    assert_eq!(parse_duration("7years"), Ok(Duration::new(7*31557600, 0)));
-    assert_eq!(parse_duration("17y"), Ok(Duration::new(536479200, 0)));
+/// Formats duration into a human-readable string
+///
+/// Note: this format is guaranteed to have same value when using
+/// parse_duration, but we can change some details of the exact composition
+/// of the value.
+///
+/// # Examples
+///
+/// ```
+/// use std::time::Duration;
+/// use humantime::format_duration;
+///
+/// let val1 = Duration::new(9420, 0);
+/// assert_eq!(format_duration(val1).to_string(), "2h 37m");
+/// let val2 = Duration::new(0, 32_000_000);
+/// assert_eq!(format_duration(val2).to_string(), "32ms");
+/// ```
+pub fn format_duration(val: Duration) -> FormattedDuration {
+    FormattedDuration(val)
 }
 
-#[test]
-fn test_combo() {
-    assert_eq!(parse_duration("20 min 17 nsec "), Ok(Duration::new(1200, 17)));
-    assert_eq!(parse_duration("2h 15m"), Ok(Duration::new(8100, 0)));
+fn item_plural(f: &mut fmt::Formatter, started: &mut bool,
+    name: &str, value: u64)
+    -> fmt::Result
+{
+    if value > 0 {
+        if *started {
+            f.write_str(" ")?;
+        }
+        write!(f, "{}{}", value, name)?;
+        if value > 1 {
+            f.write_str("s")?;
+        }
+        *started = true;
+    }
+    Ok(())
+}
+fn item(f: &mut fmt::Formatter, started: &mut bool, name: &str, value: u32)
+    -> fmt::Result
+{
+    if value > 0 {
+        if *started {
+            f.write_str(" ")?;
+        }
+        write!(f, "{}{}", value, name)?;
+        *started = true;
+    }
+    Ok(())
 }
 
-#[test]
-fn test_overlow() {
-    // Overflow on subseconds is earlier because of how we do conversion
-    // we could fix it, but I don't see any good reason for this
-    assert_eq!(parse_duration("100000000000000000000ns"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("100000000000000000us"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("100000000000000ms"),
-        Err(Error::NumberOverflow));
+impl fmt::Display for FormattedDuration {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let secs = self.0.as_secs();
+        let nanos = self.0.subsec_nanos();
 
-    assert_eq!(parse_duration("100000000000000000000s"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("10000000000000000000m"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("1000000000000000000h"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("100000000000000000d"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("10000000000000000w"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("1000000000000000M"),
-        Err(Error::NumberOverflow));
-    assert_eq!(parse_duration("10000000000000y"),
-        Err(Error::NumberOverflow));
+        if secs == 0 && nanos == 0 {
+            f.write_str("0s")?;
+            return Ok(());
+        }
+
+        let years = secs / 31557600;  // 365.25d
+        let ydays = secs % 31557600;
+        let months = ydays / 2630016;  // 30.44d
+        let mdays = ydays % 2630016;
+        let days = mdays / 86400;
+        let day_secs = mdays % 86400;
+        let hours = day_secs / 3600;
+        let minutes = day_secs % 3600 / 60;
+        let seconds = day_secs % 60;
+
+        let millis = nanos / 1_000_000;
+        let micros = nanos / 1000 % 1000;
+        let nanosec = nanos % 1000;
+
+        let ref mut started = false;
+        item_plural(f, started, "year", years)?;
+        item_plural(f, started, "month", months)?;
+        item_plural(f, started, "day", days)?;
+        item(f, started, "h", hours as u32)?;
+        item(f, started, "m", minutes as u32)?;
+        item(f, started, "s", seconds as u32)?;
+        item(f, started, "ms", millis)?;
+        item(f, started, "us", micros)?;
+        item(f, started, "ns", nanosec)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    extern crate rand;
+
+    use std::time::Duration;
+    use self::rand::Rng;
+    use super::{parse_duration, format_duration};
+    use super::Error;
+
+    #[test]
+    fn test_units() {
+        assert_eq!(parse_duration("17nsec"), Ok(Duration::new(0, 17)));
+        assert_eq!(parse_duration("17nanos"), Ok(Duration::new(0, 17)));
+        assert_eq!(parse_duration("33ns"), Ok(Duration::new(0, 33)));
+        assert_eq!(parse_duration("3usec"), Ok(Duration::new(0, 3000)));
+        assert_eq!(parse_duration("78us"), Ok(Duration::new(0, 78000)));
+        assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31000000)));
+        assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31000000)));
+        assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6000000)));
+        assert_eq!(parse_duration("3000s"), Ok(Duration::new(3000, 0)));
+        assert_eq!(parse_duration("300sec"), Ok(Duration::new(300, 0)));
+        assert_eq!(parse_duration("300secs"), Ok(Duration::new(300, 0)));
+        assert_eq!(parse_duration("50seconds"), Ok(Duration::new(50, 0)));
+        assert_eq!(parse_duration("1second"), Ok(Duration::new(1, 0)));
+        assert_eq!(parse_duration("100m"), Ok(Duration::new(6000, 0)));
+        assert_eq!(parse_duration("12min"), Ok(Duration::new(720, 0)));
+        assert_eq!(parse_duration("12mins"), Ok(Duration::new(720, 0)));
+        assert_eq!(parse_duration("1minute"), Ok(Duration::new(60, 0)));
+        assert_eq!(parse_duration("7minutes"), Ok(Duration::new(420, 0)));
+        assert_eq!(parse_duration("2h"), Ok(Duration::new(7200, 0)));
+        assert_eq!(parse_duration("7hr"), Ok(Duration::new(25200, 0)));
+        assert_eq!(parse_duration("7hrs"), Ok(Duration::new(25200, 0)));
+        assert_eq!(parse_duration("1hour"), Ok(Duration::new(3600, 0)));
+        assert_eq!(parse_duration("24hours"), Ok(Duration::new(86400, 0)));
+        assert_eq!(parse_duration("1day"), Ok(Duration::new(86400, 0)));
+        assert_eq!(parse_duration("2days"), Ok(Duration::new(172800, 0)));
+        assert_eq!(parse_duration("365d"), Ok(Duration::new(31536000, 0)));
+        assert_eq!(parse_duration("1week"), Ok(Duration::new(604800, 0)));
+        assert_eq!(parse_duration("7weeks"), Ok(Duration::new(4233600, 0)));
+        assert_eq!(parse_duration("52w"), Ok(Duration::new(31449600, 0)));
+        assert_eq!(parse_duration("1month"), Ok(Duration::new(2630016, 0)));
+        assert_eq!(parse_duration("3months"), Ok(Duration::new(3*2630016, 0)));
+        assert_eq!(parse_duration("12M"), Ok(Duration::new(31560192, 0)));
+        assert_eq!(parse_duration("1year"), Ok(Duration::new(31557600, 0)));
+        assert_eq!(parse_duration("7years"), Ok(Duration::new(7*31557600, 0)));
+        assert_eq!(parse_duration("17y"), Ok(Duration::new(536479200, 0)));
+    }
+
+    #[test]
+    fn test_combo() {
+        assert_eq!(parse_duration("20 min 17 nsec "), Ok(Duration::new(1200, 17)));
+        assert_eq!(parse_duration("2h 15m"), Ok(Duration::new(8100, 0)));
+    }
+
+    #[test]
+    fn all_86400_seconds() {
+        for second in 0..86400 {  // scan leap year and non-leap year
+            let d = Duration::new(second, 0);
+            assert_eq!(d,
+                parse_duration(&format_duration(d).to_string()).unwrap());
+        }
+    }
+
+    #[test]
+    fn random_second() {
+        for _ in 0..10000 {
+            let sec = rand::thread_rng().gen_range(0, 253370764800);
+            let d = Duration::new(sec, 0);
+            assert_eq!(d,
+                parse_duration(&format_duration(d).to_string()).unwrap());
+        }
+    }
+
+    #[test]
+    fn random_any() {
+        for _ in 0..10000 {
+            let sec = rand::thread_rng().gen_range(0, 253370764800);
+            let nanos = rand::thread_rng().gen_range(0, 1_000_000_000);
+            let d = Duration::new(sec, nanos);
+            assert_eq!(d,
+                parse_duration(&format_duration(d).to_string()).unwrap());
+        }
+    }
+
+    #[test]
+    fn test_overlow() {
+        // Overflow on subseconds is earlier because of how we do conversion
+        // we could fix it, but I don't see any good reason for this
+        assert_eq!(parse_duration("100000000000000000000ns"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("100000000000000000us"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("100000000000000ms"),
+            Err(Error::NumberOverflow));
+
+        assert_eq!(parse_duration("100000000000000000000s"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("10000000000000000000m"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("1000000000000000000h"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("100000000000000000d"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("10000000000000000w"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("1000000000000000M"),
+            Err(Error::NumberOverflow));
+        assert_eq!(parse_duration("10000000000000y"),
+            Err(Error::NumberOverflow));
+    }
 }

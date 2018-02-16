@@ -3,7 +3,7 @@ use std::ops::Deref;
 use std::fmt;
 use std::time::{Duration as StdDuration, SystemTime};
 
-use duration::{self, parse_duration};
+use duration::{self, parse_duration, format_duration};
 use date::{self, parse_rfc3339_weak, format_rfc3339};
 
 /// A wrapper for duration that has `FromStr` implementation
@@ -70,6 +70,11 @@ impl FromStr for Duration {
     }
 }
 
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        format_duration(self.0).fmt(f)
+    }
+}
 
 impl AsRef<SystemTime> for Timestamp {
     fn as_ref(&self) -> &SystemTime { &self.0 }

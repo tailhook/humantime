@@ -43,7 +43,7 @@ pub struct Duration(StdDuration);
 /// assert_eq!(humantime::format_rfc3339(x).to_string(), "2018-02-16T00:31:37Z");
 /// ```
 ///
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Timestamp(SystemTime);
 
 impl AsRef<StdDuration> for Duration {

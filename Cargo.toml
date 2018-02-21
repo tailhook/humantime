@@ -9,7 +9,8 @@ keywords = ["time", "human", "human-friendly", "parser", "duration"]
 homepage = "https://github.com/tailhook/humantime"
 documentation = "https://docs.rs/humantime"
 version = "1.1.0-beta.3"
-authors = ["paul@colomiets.name"]
+authors = ["Paul Colomiets <paul@colomiets.name>"]
+categories = ["date-and-time"]
 
 [dependencies]
 quick-error = "1.0.0"

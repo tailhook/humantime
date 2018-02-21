@@ -8,8 +8,12 @@ Human Time
 [Crate](https://crates.io/crates/humantime)
 
 
-Human-friendly time parser. Curently only parses something like
-``12days 2hours 1min`` into ``std::time::Duration``.
+Features:
+
+* Parses durations in free form like `15days 2min 2s`
+* Formats durations in similar form `2years 2min 12us`
+* Parses and formats timestamp in `rfc3339` format: `2018-01-01T12:53:00Z`
+* Parses timestamps in a weaker format: `2018-01-01 12:53:00`
 
 
 License

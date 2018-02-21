@@ -8,7 +8,7 @@ readme = "README.md"
 keywords = ["time", "human", "human-friendly", "parser", "duration"]
 homepage = "https://github.com/tailhook/humantime"
 documentation = "https://docs.rs/humantime"
-version = "1.1.0-beta.3"
+version = "1.1.0-beta.4"
 authors = ["Paul Colomiets <paul@colomiets.name>"]
 categories = ["date-and-time"]
 

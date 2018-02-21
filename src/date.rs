@@ -3,7 +3,7 @@ use std::str;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
 quick_error! {
-    /// Error parsing human-friendly timestamp
+    /// Error parsing datetime (timestamp)
     #[derive(Debug, PartialEq, Clone, Copy)]
     pub enum Error {
         /// Numeric component is out of range
@@ -40,7 +40,7 @@ fn two_digits(b1: u8, b2: u8) -> Result<u64, Error> {
     Ok(((b1 - b'0')*10 + (b2 - b'0')) as u64)
 }
 
-/// Parse rfc3339 timestamp `2018-02-14T00:28:07Z`
+/// Parse RFC3339 timestamp `2018-02-14T00:28:07Z`
 ///
 /// Supported feature: any precision of fractional
 /// digits `2018-02-14T00:28:07.133Z`.
@@ -57,7 +57,7 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
     return parse_rfc3339_weak(s);
 }
 
-/// Parse rfc3339-like timestamp `2018-02-14 00:28:07`
+/// Parse RFC3339-like timestamp `2018-02-14 00:28:07`
 ///
 /// Supported features:
 ///
@@ -68,8 +68,8 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
 /// Unsupported feature: localized timestamps. Only UTC is supported, even if
 /// `Z` is not specified.
 ///
-/// This function is intended to use for parsing input. Whereas
-/// `parse_rfc3339` is for input generated programmatically.
+/// This function is intended to use for parsing human input. Whereas
+/// `parse_rfc3339` is for strings generated programmatically.
 pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     if s.len() < "2018-02-14T00:28:07".len() {
         return Err(Error::InvalidFormat);
@@ -154,31 +154,31 @@ fn is_leap_year(y: u64) -> bool {
     y % 4 == 0 && (!(y % 100 == 0) || y % 400 == 0)
 }
 
-/// Format an rfc3339 timestamp `2018-02-14T00:28:07Z`
+/// Format an RFC3339 timestamp `2018-02-14T00:28:07Z`
 ///
 /// This function formats timestamp with smart precision: i.e. if it has no
 /// fractional seconds, they aren't written at all. And up to nine digits if
 /// they are.
 ///
-/// The value is always UTC and ignores system locale.
+/// The value is always UTC and ignores system timezone.
 pub fn format_rfc3339(system_time: SystemTime) -> Rfc3339Timestamp {
     return Rfc3339Timestamp(system_time, Precision::Smart);
 }
 
-/// Format an rfc3339 timestamp `2018-02-14T00:28:07Z`
+/// Format an RFC3339 timestamp `2018-02-14T00:28:07Z`
 ///
 /// This format always shows timestamp without fractional seconds.
 ///
-/// The value is always UTC and ignores system locale.
+/// The value is always UTC and ignores system timezone.
 pub fn format_rfc3339_seconds(system_time: SystemTime) -> Rfc3339Timestamp {
     return Rfc3339Timestamp(system_time, Precision::Seconds);
 }
 
-/// Format an rfc3339 timestamp `2018-02-14T00:28:07.000000000Z`
+/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000000000Z`
 ///
-/// This fromat always shows nanoseconds even if nanosecond value is zero.
+/// This format always shows nanoseconds even if nanosecond value is zero.
 ///
-/// The value is always UTC and ignores system locale.
+/// The value is always UTC and ignores system timezone.
 pub fn format_rfc3339_nanos(system_time: SystemTime) -> Rfc3339Timestamp {
     return Rfc3339Timestamp(system_time, Precision::Nanos);
 }

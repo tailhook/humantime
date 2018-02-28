@@ -299,6 +299,7 @@ mod test {
     extern crate rand;
 
     use std::i32;
+    use std::str::from_utf8;
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
     use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339, Error};
@@ -496,11 +497,9 @@ mod test {
     #[test]
     fn break_data() {
         for pos in 0.."2016-12-31T23:59:60Z".len() {
-            let mut s = String::from("2016-12-31T23:59:60Z");
-            unsafe {
-                s.as_bytes_mut()[pos] = b'x';
-            }
-            parse_rfc3339("1970-12-30T24:00:00Z").unwrap_err();
+            let mut s = b"2016-12-31T23:59:60Z".to_vec();
+            s[pos] = b'x';
+            parse_rfc3339(from_utf8(&s).unwrap()).unwrap_err();
         }
     }
 

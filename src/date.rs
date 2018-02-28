@@ -3,20 +3,33 @@ use std::str;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
 #[cfg(target_os="cloudabi")]
-const MAX_SECONDS: u64 = ::std::u64::MAX / 1_000_000_000;
+mod max {
+    pub const SECONDS: u64 = ::std::u64::MAX / 1_000_000_000;
+    #[allow(unused)]
+    pub const TIMESTAMP: &'static str = "2554-07-21T23:34:33Z";
+}
 #[cfg(all(
     target_pointer_width="32",
     not(target_os="cloudabi"),
     not(target_os="windows"),
     not(all(target_arch="wasm32", not(target_os="emscripten")))
 ))]
-const MAX_SECONDS: u64 = ::std::i32::MAX as u64;
+mod max {
+    pub const SECONDS: u64 = ::std::i32::MAX as u64;
+    #[allow(unused)]
+    pub const TIMESTAMP: &'static str = "2038-01-19T03:14:07Z";
+}
+
 #[cfg(any(
     target_pointer_width="64",
     target_os="windows",
     all(target_arch="wasm32", not(target_os="emscripten")),
 ))]
-const MAX_SECONDS: u64 = 253402300800-1;  // last second of year 9999
+mod max {
+    pub const SECONDS: u64 = 253402300800-1;  // last second of year 9999
+    #[allow(unused)]
+    pub const TIMESTAMP: &'static str = "9999-12-31T23:59:59Z";
+}
 
 quick_error! {
     /// Error parsing datetime (timestamp)
@@ -164,7 +177,7 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     }
 
     let total_seconds = time + days * 86400;
-    if total_seconds > MAX_SECONDS {
+    if total_seconds > max::SECONDS {
         return Err(Error::OutOfRange);
     }
 
@@ -315,7 +328,7 @@ mod test {
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
     use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339};
-    use super::{MAX_SECONDS};
+    use super::max;
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
         let s = time::at_utc(time::Timespec { sec: sec as i64, nsec: 0 })
@@ -363,20 +376,10 @@ mod test {
     }
 
     #[test]
-    fn upper_bound_32bit() {
-        let max = UNIX_EPOCH + Duration::new(::std::i32::MAX as u64, 0);
-        assert_eq!(format_rfc3339(max).to_string(), "2038-01-19T03:14:07Z");
-        assert_eq!(parse_rfc3339("2038-01-19T03:14:07Z").unwrap(), max);
-    }
-
-    #[test]
-    #[cfg(all(target_pointer_width="64", not(target_os="cloudabi")))]
-    fn upper_bound_64bit() {
-        assert_eq!(parse_rfc3339("9999-12-31T23:59:59Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(253402300800-1, 0));
-        assert_eq!(
-            format_rfc3339(UNIX_EPOCH + Duration::new(253402300800-1, 0))
-            .to_string(), "9999-12-31T23:59:59Z");
+    fn upper_bound() {
+        let max = UNIX_EPOCH + Duration::new(max::SECONDS, 0);
+        assert_eq!(parse_rfc3339(&max::TIMESTAMP).unwrap(), max);
+        assert_eq!(format_rfc3339(max).to_string(), max::TIMESTAMP);
     }
 
     #[test]
@@ -430,7 +433,7 @@ mod test {
     #[test]
     fn random_wide_range() {
         for _ in 0..100000 {
-            let sec = rand::thread_rng().gen_range(0, MAX_SECONDS);
+            let sec = rand::thread_rng().gen_range(0, max::SECONDS);
             let (s, time) = from_sec(sec);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);

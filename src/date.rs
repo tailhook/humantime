@@ -1,4 +1,5 @@
 use std::fmt;
+use std::i32;
 use std::str;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
@@ -147,7 +148,14 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
         }
     }
 
-    return Ok(UNIX_EPOCH + Duration::new(time + days * 86400, nanos));
+    let total_seconds = time + days * 86400;
+    if cfg!(target_pointer_width="32") {
+        if total_seconds > i32::MAX as u64 {
+            return Err(Error::OutOfRange);
+        }
+    }
+
+    return Ok(UNIX_EPOCH + Duration::new(total_seconds, nanos));
 }
 
 fn is_leap_year(y: u64) -> bool {
@@ -290,15 +298,33 @@ mod test {
     extern crate time;
     extern crate rand;
 
+    use std::i32;
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
-    use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339};
+    use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339, Error};
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
         let s = time::at_utc(time::Timespec { sec: sec as i64, nsec: 0 })
                   .rfc3339().to_string();
         let time = UNIX_EPOCH + Duration::new(sec, 0);
         return (s, time)
+    }
+
+    #[test]
+    #[should_panic(expected="overflow when adding duration to time")]
+    #[cfg(target_pointer_width="32")]
+    fn check_32bit_still_has_2038_year_problem() {
+        UNIX_EPOCH + Duration::from_secs((i32::MAX as u64) + 1);
+    }
+
+    #[test]
+    #[cfg(target_pointer_width="32")]
+    fn year_after_2038_fails_gracefully() {
+        // next second
+        assert_eq!(parse_rfc3339("2038-01-19T03:14:08Z").unwrap_err(),
+                   Error::OutOfRange);
+        assert_eq!(parse_rfc3339("9999-12-31T23:59:59Z").unwrap_err(),
+                   Error::OutOfRange);
     }
 
     #[test]
@@ -330,7 +356,15 @@ mod test {
     }
 
     #[test]
-    fn upper_bound() {
+    fn upper_bound_32bit() {
+        let max = UNIX_EPOCH + Duration::new((::std::i32::MAX as u64), 0);
+        assert_eq!(format_rfc3339(max).to_string(), "2038-01-19T03:14:07Z");
+        assert_eq!(parse_rfc3339("2038-01-19T03:14:07Z").unwrap(), max);
+    }
+
+    #[test]
+    #[cfg(target_pointer_width="64")]
+    fn upper_bound_64bit() {
         assert_eq!(parse_rfc3339("9999-12-31T23:59:59Z").unwrap(),
                    UNIX_EPOCH + Duration::new(253402300800-1, 0));
         assert_eq!(
@@ -388,8 +422,15 @@ mod test {
 
     #[test]
     fn random_wide_range() {
+        let max_date = if cfg!(target_pointer_width="32") {
+            // 32bit duration supports only up to u32::MAX seconds
+            i32::MAX as u64
+        } else {
+            // on 64bit we support up to a year 9999
+            253370764800
+        };
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, 253370764800);
+            let sec = rand::thread_rng().gen_range(0, max_date);
             let (s, time) = from_sec(sec);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);

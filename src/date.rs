@@ -50,7 +50,7 @@ quick_error! {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Precision {
     Smart,
     Seconds,
@@ -58,7 +58,7 @@ enum Precision {
 }
 
 /// A wrapper type that allows you to Display a SystemTime
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rfc3339Timestamp(SystemTime, Precision);
 
 #[inline]

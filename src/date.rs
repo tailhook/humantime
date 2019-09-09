@@ -366,6 +366,8 @@ mod test {
     use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
     use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339};
+    use super::{format_rfc3339_millis, format_rfc3339_micros};
+    use super::{format_rfc3339_nanos};
     use super::max;
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
@@ -411,6 +413,50 @@ mod test {
         assert_eq!(
             format_rfc3339(UNIX_EPOCH + Duration::new(1325376000, 0)).to_string(),
             "2012-01-01T00:00:00Z");
+    }
+
+    #[test]
+    fn smoke_tests_format_millis() {
+        assert_eq!(
+            format_rfc3339_millis(UNIX_EPOCH +
+                Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000Z");
+        assert_eq!(
+            format_rfc3339_millis(UNIX_EPOCH +
+                Duration::new(1518563312, 123_000_000)).to_string(),
+            "2018-02-13T23:08:32.123Z");
+    }
+
+    #[test]
+    fn smoke_tests_format_micros() {
+        assert_eq!(
+            format_rfc3339_micros(UNIX_EPOCH +
+                Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000000Z");
+        assert_eq!(
+            format_rfc3339_micros(UNIX_EPOCH +
+                Duration::new(1518563312, 123_000_000)).to_string(),
+            "2018-02-13T23:08:32.123000Z");
+        assert_eq!(
+            format_rfc3339_micros(UNIX_EPOCH +
+                Duration::new(1518563312, 456_123_000)).to_string(),
+            "2018-02-13T23:08:32.456123Z");
+    }
+
+    #[test]
+    fn smoke_tests_format_nanos() {
+        assert_eq!(
+            format_rfc3339_nanos(UNIX_EPOCH +
+                Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000000000Z");
+        assert_eq!(
+            format_rfc3339_nanos(UNIX_EPOCH +
+                Duration::new(1518563312, 123_000_000)).to_string(),
+            "2018-02-13T23:08:32.123000000Z");
+        assert_eq!(
+            format_rfc3339_nanos(UNIX_EPOCH +
+                Duration::new(1518563312, 789_456_123)).to_string(),
+            "2018-02-13T23:08:32.789456123Z");
     }
 
     #[test]

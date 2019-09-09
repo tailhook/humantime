@@ -54,6 +54,8 @@ quick_error! {
 enum Precision {
     Smart,
     Seconds,
+    Millis,
+    Micros,
     Nanos,
 }
 
@@ -208,6 +210,24 @@ pub fn format_rfc3339_seconds(system_time: SystemTime) -> Rfc3339Timestamp {
     return Rfc3339Timestamp(system_time, Precision::Seconds);
 }
 
+/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000Z`
+///
+/// This format always shows milliseconds even if millisecond value is zero.
+///
+/// The value is always UTC and ignores system timezone.
+pub fn format_rfc3339_millis(system_time: SystemTime) -> Rfc3339Timestamp {
+    return Rfc3339Timestamp(system_time, Precision::Millis);
+}
+
+/// Format an RFC3339 timestamp `2018-02-14T00:28:07.000000Z`
+///
+/// This format always shows microseconds even if microsecond value is zero.
+///
+/// The value is always UTC and ignores system timezone.
+pub fn format_rfc3339_micros(system_time: SystemTime) -> Rfc3339Timestamp {
+    return Rfc3339Timestamp(system_time, Precision::Micros);
+}
+
 /// Format an RFC3339 timestamp `2018-02-14T00:28:07.000000000Z`
 ///
 /// This format always shows nanoseconds even if nanosecond value is zero.
@@ -300,9 +320,24 @@ impl fmt::Display for Rfc3339Timestamp {
         buf[17] = b'0' + (secs_of_day / 10 % 6) as u8;
         buf[18] = b'0' + (secs_of_day % 10) as u8;
 
-        if self.1 == Seconds || nanos == 0 && self.1 == Smart {
+        let offset = if self.1 == Seconds || nanos == 0 && self.1 == Smart {
             buf[19] = b'Z';
-            f.write_str(unsafe { str::from_utf8_unchecked(&buf[..20]) })
+            19
+        } else if self.1 == Millis {
+            buf[20] = b'0' + (nanos / 100_000_000) as u8;
+            buf[21] = b'0' + (nanos / 10_000_000 % 10) as u8;
+            buf[22] = b'0' + (nanos / 1_000_000 % 10) as u8;
+            buf[23] = b'Z';
+            23
+        } else if self.1 == Micros {
+            buf[20] = b'0' + (nanos / 100_000_000) as u8;
+            buf[21] = b'0' + (nanos / 10_000_000 % 10) as u8;
+            buf[22] = b'0' + (nanos / 1_000_000 % 10) as u8;
+            buf[23] = b'0' + (nanos / 100_000 % 10) as u8;
+            buf[24] = b'0' + (nanos / 10_000 % 10) as u8;
+            buf[25] = b'0' + (nanos / 1_000 % 10) as u8;
+            buf[26] = b'Z';
+            26
         } else {
             buf[20] = b'0' + (nanos / 100_000_000) as u8;
             buf[21] = b'0' + (nanos / 10_000_000 % 10) as u8;
@@ -313,9 +348,12 @@ impl fmt::Display for Rfc3339Timestamp {
             buf[26] = b'0' + (nanos / 100 % 10) as u8;
             buf[27] = b'0' + (nanos / 10 % 10) as u8;
             buf[28] = b'0' + (nanos / 1 % 10) as u8;
-            // we know our chars are all ascii
-            f.write_str(unsafe { str::from_utf8_unchecked(&buf[..]) })
-        }
+            // 29th is 'Z'
+            29
+        };
+
+        // we know our chars are all ascii
+        f.write_str(unsafe { str::from_utf8_unchecked(&buf[..offset+1]) })
     }
 }
 

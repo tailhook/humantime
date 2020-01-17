@@ -364,12 +364,11 @@ impl fmt::Display for Rfc3339Timestamp {
 
 #[cfg(test)]
 mod test {
-    extern crate time;
-    extern crate rand;
-
     use std::str::from_utf8;
-    use self::rand::Rng;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
+
+    use rand::Rng;
+
     use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339};
     use super::{format_rfc3339_millis, format_rfc3339_micros};
     use super::{format_rfc3339_nanos};

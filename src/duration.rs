@@ -301,10 +301,10 @@ impl fmt::Display for FormattedDuration {
 
 #[cfg(test)]
 mod test {
-    extern crate rand;
-
     use std::time::Duration;
-    use self::rand::Rng;
+
+    use rand::Rng;
+
     use super::{parse_duration, format_duration};
     use super::Error;
 

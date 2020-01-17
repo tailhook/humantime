@@ -1,12 +1,10 @@
 #![feature(test)]
-extern crate chrono;
-extern crate humantime;
 extern crate test;
 
 use std::io::Write;
 use std::time::{Duration, UNIX_EPOCH};
-use humantime::format_rfc3339;
 
+use humantime::format_rfc3339;
 
 #[bench]
 fn rfc3339_humantime_seconds(b: &mut test::Bencher) {

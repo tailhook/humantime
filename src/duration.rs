@@ -1,60 +1,61 @@
+use std::error::Error as StdError;
 use std::fmt;
 use std::str::Chars;
 use std::time::Duration;
-use std::error::Error as StdError;
 
-quick_error! {
-    /// Error parsing human-friendly duration
-    #[derive(Debug, PartialEq, Clone, Copy)]
-    pub enum Error {
-        /// Invalid character during parsing
-        ///
-        /// More specifically anything that is not alphanumeric is prohibited
-        ///
-        /// The field is an byte offset of the character in the string.
-        InvalidCharacter(offset: usize) {
-            display("invalid character at {}", offset)
-            description("invalid character")
-        }
-        /// Non-numeric value where number is expected
-        ///
-        /// This usually means that either time unit is broken into words,
-        /// e.g. `m sec` instead of `msec`, or just number is omitted,
-        /// for example `2 hours min` instead of `2 hours 1 min`
-        ///
-        /// The field is an byte offset of the errorneous character
-        /// in the string.
-        NumberExpected(offset: usize) {
-            display("expected number at {}", offset)
-            description("expected number")
-        }
-        /// Unit in the number is not one of allowed units
-        ///
-        /// See documentation of `parse_duration` for the list of supported
-        /// time units.
-        ///
-        /// The two fields are start and end (exclusive) of the slice from
-        /// the original string, containing errorneous value
-        UnknownUnit(start: usize, end: usize) {
-            display("unknown unit at {}-{}", start, end)
-            description("unknown unit")
-        }
-        /// The numeric value is too large
-        ///
-        /// Usually this means value is too large to be useful. If user writes
-        /// data in subsecond units, then the maximum is about 3k years. When
-        /// using seconds, or larger units, the limit is even larger.
-        NumberOverflow {
-            display(self_) -> ("{}", self_.description())
-            description("number is too large")
-        }
-        /// The value was an empty string (or consists only whitespace)
-        Empty {
-            display(self_) -> ("{}", self_.description())
-            description("value was empty")
+/// Error parsing human-friendly duration
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Error {
+    /// Invalid character during parsing
+    ///
+    /// More specifically anything that is not alphanumeric is prohibited
+    ///
+    /// The field is an byte offset of the character in the string.
+    InvalidCharacter(usize),
+    /// Non-numeric value where number is expected
+    ///
+    /// This usually means that either time unit is broken into words,
+    /// e.g. `m sec` instead of `msec`, or just number is omitted,
+    /// for example `2 hours min` instead of `2 hours 1 min`
+    ///
+    /// The field is an byte offset of the errorneous character
+    /// in the string.
+    NumberExpected(usize),
+    /// Unit in the number is not one of allowed units
+    ///
+    /// See documentation of `parse_duration` for the list of supported
+    /// time units.
+    ///
+    /// The two fields are start and end (exclusive) of the slice from
+    /// the original string, containing errorneous value
+    UnknownUnit(usize, usize),
+    /// The numeric value is too large
+    ///
+    /// Usually this means value is too large to be useful. If user writes
+    /// data in subsecond units, then the maximum is about 3k years. When
+    /// using seconds, or larger units, the limit is even larger.
+    NumberOverflow,
+    /// The value was an empty string (or consists only whitespace)
+    Empty,
+}
+
+impl StdError for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::InvalidCharacter(offset) => write!(f, "invalid character at {}", offset),
+            Error::NumberExpected(offset) => write!(f, "expected number at {}", offset),
+            Error::UnknownUnit(start, end) => write!(
+                f,
+                "unknown time unit at {}-{}, \
+                see documentation of `parse_duration` for the list of supported time units",
+                start, end
+            ),
+            Error::NumberOverflow => write!(f, "number is too large"),
+            Error::Empty => write!(f, "value was empty"),
         }
     }
-
 }
 
 /// A wrapper type that allows you to Display a Duration
@@ -90,7 +91,7 @@ impl<'a> Parser<'a> {
         let off = self.off();
         for c in self.iter.by_ref() {
             match c {
-                '0'...'9' => {
+                '0'..='9' => {
                     return Ok(Some(c as u64 - '0' as u64));
                 }
                 c if c.is_whitespace() => continue,
@@ -106,41 +107,41 @@ impl<'a> Parser<'a> {
     {
         let (mut sec, nsec) = match &self.src[start..end] {
             "nanos" | "nsec" | "ns" => (0u64, n),
-            "usec" | "us" => (0u64, try!(n.mul(1000))),
-            "millis" | "msec" | "ms" => (0u64, try!(n.mul(1000_000))),
+            "usec" | "us" => (0u64, n.mul(1000)?),
+            "millis" | "msec" | "ms" => (0u64, n.mul(1000_000)?),
             "seconds" | "second" | "secs" | "sec" | "s" => (n, 0),
             "minutes" | "minute" | "min" | "mins" | "m"
-            => (try!(n.mul(60)), 0),
-            "hours" | "hour" | "hr" | "hrs" | "h" => (try!(n.mul(3600)), 0),
-            "days" | "day" | "d" => (try!(n.mul(86400)), 0),
-            "weeks" | "week" | "w" => (try!(n.mul(86400*7)), 0),
-            "months" | "month" | "M" => (try!(n.mul(2630016)), 0), // 30.44d
-            "years" | "year" | "y" => (try!(n.mul(31557600)), 0), // 365.25d
+            => (n.mul(60)?, 0),
+            "hours" | "hour" | "hr" | "hrs" | "h" => (n.mul(3600)?, 0),
+            "days" | "day" | "d" => (n.mul(86400)?, 0),
+            "weeks" | "week" | "w" => (n.mul(86400*7)?, 0),
+            "months" | "month" | "M" => (n.mul(2630016)?, 0), // 30.44d
+            "years" | "year" | "y" => (n.mul(31557600)?, 0), // 365.25d
             _ => return Err(Error::UnknownUnit(start, end)),
         };
-        let mut nsec = try!(self.current.1.add(nsec));
+        let mut nsec = self.current.1.add(nsec)?;
         if nsec > 1000_000_000 {
-            sec = try!(sec.add(nsec / 1000_000_000));
+            sec = sec.add(nsec / 1000_000_000)?;
             nsec %= 1000_000_000;
         }
-        sec = try!(self.current.0.add(sec));
+        sec = self.current.0.add(sec)?;
         self.current = (sec, nsec);
         Ok(())
     }
 
     fn parse(mut self) -> Result<Duration, Error> {
-        let mut n = try!(try!(self.parse_first_char()).ok_or(Error::Empty));
+        let mut n = self.parse_first_char()?.ok_or(Error::Empty)?;
         'outer: loop {
             let mut off = self.off();
             while let Some(c) = self.iter.next() {
                 match c {
-                    '0'...'9' => {
-                        n = try!(n.checked_mul(10)
+                    '0'..='9' => {
+                        n = n.checked_mul(10)
                             .and_then(|x| x.checked_add(c as u64 - '0' as u64))
-                            .ok_or(Error::NumberOverflow));
+                            .ok_or(Error::NumberOverflow)?;
                     }
                     c if c.is_whitespace() => {}
-                    'a'...'z' | 'A'...'Z' => {
+                    'a'..='z' | 'A'..='Z' => {
                         break;
                     }
                     _ => {
@@ -153,21 +154,21 @@ impl<'a> Parser<'a> {
             let mut off = self.off();
             while let Some(c) = self.iter.next() {
                 match c {
-                    '0'...'9' => {
-                        try!(self.parse_unit(n, start, off));
+                    '0'..='9' => {
+                        self.parse_unit(n, start, off)?;
                         n = c as u64 - '0' as u64;
                         continue 'outer;
                     }
                     c if c.is_whitespace() => break,
-                    'a'...'z' | 'A'...'Z' => {}
+                    'a'..='z' | 'A'..='Z' => {}
                     _ => {
                         return Err(Error::InvalidCharacter(off));
                     }
                 }
                 off = self.off();
             }
-            try!(self.parse_unit(n, start, off));
-            n = match try!(self.parse_first_char()) {
+            self.parse_unit(n, start, off)?;
+            n = match self.parse_first_char()? {
                 Some(n) => n,
                 None => return Ok(
                     Duration::new(self.current.0, self.current.1 as u32)),

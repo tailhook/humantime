@@ -18,8 +18,6 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 
-#[macro_use] extern crate quick_error;
-
 mod duration;
 mod wrapper;
 mod date;

@@ -1,3 +1,4 @@
+use std::error::Error as StdError;
 use std::fmt;
 use std::str;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
@@ -31,21 +32,25 @@ mod max {
     pub const TIMESTAMP: &'static str = "9999-12-31T23:59:59Z";
 }
 
-quick_error! {
-    /// Error parsing datetime (timestamp)
-    #[derive(Debug, PartialEq, Clone, Copy)]
-    pub enum Error {
-        /// Numeric component is out of range
-        OutOfRange {
-            display("numeric component is out of range")
-        }
-        /// Bad character where digit is expected
-        InvalidDigit {
-            display("bad character where digit is expected")
-        }
-        /// Other formatting errors
-        InvalidFormat {
-            display("timestamp format is invalid")
+/// Error parsing datetime (timestamp)
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Error {
+    /// Numeric component is out of range
+    OutOfRange,
+    /// Bad character where digit is expected
+    InvalidDigit,
+    /// Other formatting errors
+    InvalidFormat,
+}
+
+impl StdError for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::OutOfRange => write!(f, "numeric component is out of range"),
+            Error::InvalidDigit => write!(f, "bad character where digit is expected"),
+            Error::InvalidFormat => write!(f, "timestamp format is invalid"),
         }
     }
 }

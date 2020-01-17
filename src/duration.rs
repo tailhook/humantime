@@ -1,60 +1,61 @@
+use std::error::Error as StdError;
 use std::fmt;
 use std::str::Chars;
 use std::time::Duration;
-use std::error::Error as StdError;
 
-quick_error! {
-    /// Error parsing human-friendly duration
-    #[derive(Debug, PartialEq, Clone, Copy)]
-    pub enum Error {
-        /// Invalid character during parsing
-        ///
-        /// More specifically anything that is not alphanumeric is prohibited
-        ///
-        /// The field is an byte offset of the character in the string.
-        InvalidCharacter(offset: usize) {
-            display("invalid character at {}", offset)
-            description("invalid character")
-        }
-        /// Non-numeric value where number is expected
-        ///
-        /// This usually means that either time unit is broken into words,
-        /// e.g. `m sec` instead of `msec`, or just number is omitted,
-        /// for example `2 hours min` instead of `2 hours 1 min`
-        ///
-        /// The field is an byte offset of the errorneous character
-        /// in the string.
-        NumberExpected(offset: usize) {
-            display("expected number at {}", offset)
-            description("expected number")
-        }
-        /// Unit in the number is not one of allowed units
-        ///
-        /// See documentation of `parse_duration` for the list of supported
-        /// time units.
-        ///
-        /// The two fields are start and end (exclusive) of the slice from
-        /// the original string, containing errorneous value
-        UnknownUnit(start: usize, end: usize) {
-            display("unknown unit at {}-{}", start, end)
-            description("unknown unit")
-        }
-        /// The numeric value is too large
-        ///
-        /// Usually this means value is too large to be useful. If user writes
-        /// data in subsecond units, then the maximum is about 3k years. When
-        /// using seconds, or larger units, the limit is even larger.
-        NumberOverflow {
-            display(self_) -> ("{}", self_.description())
-            description("number is too large")
-        }
-        /// The value was an empty string (or consists only whitespace)
-        Empty {
-            display(self_) -> ("{}", self_.description())
-            description("value was empty")
+/// Error parsing human-friendly duration
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Error {
+    /// Invalid character during parsing
+    ///
+    /// More specifically anything that is not alphanumeric is prohibited
+    ///
+    /// The field is an byte offset of the character in the string.
+    InvalidCharacter(usize),
+    /// Non-numeric value where number is expected
+    ///
+    /// This usually means that either time unit is broken into words,
+    /// e.g. `m sec` instead of `msec`, or just number is omitted,
+    /// for example `2 hours min` instead of `2 hours 1 min`
+    ///
+    /// The field is an byte offset of the errorneous character
+    /// in the string.
+    NumberExpected(usize),
+    /// Unit in the number is not one of allowed units
+    ///
+    /// See documentation of `parse_duration` for the list of supported
+    /// time units.
+    ///
+    /// The two fields are start and end (exclusive) of the slice from
+    /// the original string, containing errorneous value
+    UnknownUnit(usize, usize),
+    /// The numeric value is too large
+    ///
+    /// Usually this means value is too large to be useful. If user writes
+    /// data in subsecond units, then the maximum is about 3k years. When
+    /// using seconds, or larger units, the limit is even larger.
+    NumberOverflow,
+    /// The value was an empty string (or consists only whitespace)
+    Empty,
+}
+
+impl StdError for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::InvalidCharacter(offset) => write!(f, "invalid character at {}", offset),
+            Error::NumberExpected(offset) => write!(f, "expected number at {}", offset),
+            Error::UnknownUnit(start, end) => write!(
+                f,
+                "unknown time unit at {}-{}, \
+                see documentation of `parse_duration` for the list of supported time units",
+                start, end
+            ),
+            Error::NumberOverflow => write!(f, "number is too large"),
+            Error::Empty => write!(f, "value was empty"),
         }
     }
-
 }
 
 /// A wrapper type that allows you to Display a Duration

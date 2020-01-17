@@ -91,7 +91,7 @@ impl<'a> Parser<'a> {
         let off = self.off();
         for c in self.iter.by_ref() {
             match c {
-                '0'...'9' => {
+                '0'..='9' => {
                     return Ok(Some(c as u64 - '0' as u64));
                 }
                 c if c.is_whitespace() => continue,
@@ -107,41 +107,41 @@ impl<'a> Parser<'a> {
     {
         let (mut sec, nsec) = match &self.src[start..end] {
             "nanos" | "nsec" | "ns" => (0u64, n),
-            "usec" | "us" => (0u64, try!(n.mul(1000))),
-            "millis" | "msec" | "ms" => (0u64, try!(n.mul(1000_000))),
+            "usec" | "us" => (0u64, n.mul(1000)?),
+            "millis" | "msec" | "ms" => (0u64, n.mul(1000_000)?),
             "seconds" | "second" | "secs" | "sec" | "s" => (n, 0),
             "minutes" | "minute" | "min" | "mins" | "m"
-            => (try!(n.mul(60)), 0),
-            "hours" | "hour" | "hr" | "hrs" | "h" => (try!(n.mul(3600)), 0),
-            "days" | "day" | "d" => (try!(n.mul(86400)), 0),
-            "weeks" | "week" | "w" => (try!(n.mul(86400*7)), 0),
-            "months" | "month" | "M" => (try!(n.mul(2630016)), 0), // 30.44d
-            "years" | "year" | "y" => (try!(n.mul(31557600)), 0), // 365.25d
+            => (n.mul(60)?, 0),
+            "hours" | "hour" | "hr" | "hrs" | "h" => (n.mul(3600)?, 0),
+            "days" | "day" | "d" => (n.mul(86400)?, 0),
+            "weeks" | "week" | "w" => (n.mul(86400*7)?, 0),
+            "months" | "month" | "M" => (n.mul(2630016)?, 0), // 30.44d
+            "years" | "year" | "y" => (n.mul(31557600)?, 0), // 365.25d
             _ => return Err(Error::UnknownUnit(start, end)),
         };
-        let mut nsec = try!(self.current.1.add(nsec));
+        let mut nsec = self.current.1.add(nsec)?;
         if nsec > 1000_000_000 {
-            sec = try!(sec.add(nsec / 1000_000_000));
+            sec = sec.add(nsec / 1000_000_000)?;
             nsec %= 1000_000_000;
         }
-        sec = try!(self.current.0.add(sec));
+        sec = self.current.0.add(sec)?;
         self.current = (sec, nsec);
         Ok(())
     }
 
     fn parse(mut self) -> Result<Duration, Error> {
-        let mut n = try!(try!(self.parse_first_char()).ok_or(Error::Empty));
+        let mut n = self.parse_first_char()?.ok_or(Error::Empty)?;
         'outer: loop {
             let mut off = self.off();
             while let Some(c) = self.iter.next() {
                 match c {
-                    '0'...'9' => {
-                        n = try!(n.checked_mul(10)
+                    '0'..='9' => {
+                        n = n.checked_mul(10)
                             .and_then(|x| x.checked_add(c as u64 - '0' as u64))
-                            .ok_or(Error::NumberOverflow));
+                            .ok_or(Error::NumberOverflow)?;
                     }
                     c if c.is_whitespace() => {}
-                    'a'...'z' | 'A'...'Z' => {
+                    'a'..='z' | 'A'..='Z' => {
                         break;
                     }
                     _ => {
@@ -154,21 +154,21 @@ impl<'a> Parser<'a> {
             let mut off = self.off();
             while let Some(c) = self.iter.next() {
                 match c {
-                    '0'...'9' => {
-                        try!(self.parse_unit(n, start, off));
+                    '0'..='9' => {
+                        self.parse_unit(n, start, off)?;
                         n = c as u64 - '0' as u64;
                         continue 'outer;
                     }
                     c if c.is_whitespace() => break,
-                    'a'...'z' | 'A'...'Z' => {}
+                    'a'..='z' | 'A'..='Z' => {}
                     _ => {
                         return Err(Error::InvalidCharacter(off));
                     }
                 }
                 off = self.off();
             }
-            try!(self.parse_unit(n, start, off));
-            n = match try!(self.parse_first_char()) {
+            self.parse_unit(n, start, off)?;
+            n = match self.parse_first_char()? {
                 Some(n) => n,
                 None => return Ok(
                     Duration::new(self.current.0, self.current.1 as u32)),

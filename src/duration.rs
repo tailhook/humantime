@@ -100,7 +100,7 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-        return Ok(None);
+        Ok(None)
     }
     fn parse_unit(&mut self, n: u64, start: usize, end: usize)
         -> Result<(), Error>
@@ -108,21 +108,21 @@ impl<'a> Parser<'a> {
         let (mut sec, nsec) = match &self.src[start..end] {
             "nanos" | "nsec" | "ns" => (0u64, n),
             "usec" | "us" => (0u64, n.mul(1000)?),
-            "millis" | "msec" | "ms" => (0u64, n.mul(1000_000)?),
+            "millis" | "msec" | "ms" => (0u64, n.mul(1_000_000)?),
             "seconds" | "second" | "secs" | "sec" | "s" => (n, 0),
             "minutes" | "minute" | "min" | "mins" | "m"
             => (n.mul(60)?, 0),
             "hours" | "hour" | "hr" | "hrs" | "h" => (n.mul(3600)?, 0),
             "days" | "day" | "d" => (n.mul(86400)?, 0),
             "weeks" | "week" | "w" => (n.mul(86400*7)?, 0),
-            "months" | "month" | "M" => (n.mul(2630016)?, 0), // 30.44d
-            "years" | "year" | "y" => (n.mul(31557600)?, 0), // 365.25d
+            "months" | "month" | "M" => (n.mul(2_630_016)?, 0), // 30.44d
+            "years" | "year" | "y" => (n.mul(31_557_600)?, 0), // 365.25d
             _ => return Err(Error::UnknownUnit(start, end)),
         };
         let mut nsec = self.current.1.add(nsec)?;
-        if nsec > 1000_000_000 {
-            sec = sec.add(nsec / 1000_000_000)?;
-            nsec %= 1000_000_000;
+        if nsec > 1_000_000_000 {
+            sec = sec.add(nsec / 1_000_000_000)?;
+            nsec %= 1_000_000_000;
         }
         sec = self.current.0.add(sec)?;
         self.current = (sec, nsec);
@@ -271,10 +271,10 @@ impl fmt::Display for FormattedDuration {
             return Ok(());
         }
 
-        let years = secs / 31557600;  // 365.25d
-        let ydays = secs % 31557600;
-        let months = ydays / 2630016;  // 30.44d
-        let mdays = ydays % 2630016;
+        let years = secs / 31_557_600;  // 365.25d
+        let ydays = secs % 31_557_600;
+        let months = ydays / 2_630_016;  // 30.44d
+        let mdays = ydays % 2_630_016;
         let days = mdays / 86400;
         let day_secs = mdays % 86400;
         let hours = day_secs / 3600;
@@ -301,23 +301,24 @@ impl fmt::Display for FormattedDuration {
 
 #[cfg(test)]
 mod test {
-    extern crate rand;
-
     use std::time::Duration;
-    use self::rand::Rng;
+
+    use rand::Rng;
+
     use super::{parse_duration, format_duration};
     use super::Error;
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_units() {
         assert_eq!(parse_duration("17nsec"), Ok(Duration::new(0, 17)));
         assert_eq!(parse_duration("17nanos"), Ok(Duration::new(0, 17)));
         assert_eq!(parse_duration("33ns"), Ok(Duration::new(0, 33)));
         assert_eq!(parse_duration("3usec"), Ok(Duration::new(0, 3000)));
         assert_eq!(parse_duration("78us"), Ok(Duration::new(0, 78000)));
-        assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31000000)));
-        assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31000000)));
-        assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6000000)));
+        assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31_000_000)));
+        assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31_000_000)));
+        assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6_000_000)));
         assert_eq!(parse_duration("3000s"), Ok(Duration::new(3000, 0)));
         assert_eq!(parse_duration("300sec"), Ok(Duration::new(300, 0)));
         assert_eq!(parse_duration("300secs"), Ok(Duration::new(300, 0)));
@@ -334,17 +335,17 @@ mod test {
         assert_eq!(parse_duration("1hour"), Ok(Duration::new(3600, 0)));
         assert_eq!(parse_duration("24hours"), Ok(Duration::new(86400, 0)));
         assert_eq!(parse_duration("1day"), Ok(Duration::new(86400, 0)));
-        assert_eq!(parse_duration("2days"), Ok(Duration::new(172800, 0)));
-        assert_eq!(parse_duration("365d"), Ok(Duration::new(31536000, 0)));
-        assert_eq!(parse_duration("1week"), Ok(Duration::new(604800, 0)));
-        assert_eq!(parse_duration("7weeks"), Ok(Duration::new(4233600, 0)));
-        assert_eq!(parse_duration("52w"), Ok(Duration::new(31449600, 0)));
-        assert_eq!(parse_duration("1month"), Ok(Duration::new(2630016, 0)));
-        assert_eq!(parse_duration("3months"), Ok(Duration::new(3*2630016, 0)));
-        assert_eq!(parse_duration("12M"), Ok(Duration::new(31560192, 0)));
-        assert_eq!(parse_duration("1year"), Ok(Duration::new(31557600, 0)));
-        assert_eq!(parse_duration("7years"), Ok(Duration::new(7*31557600, 0)));
-        assert_eq!(parse_duration("17y"), Ok(Duration::new(536479200, 0)));
+        assert_eq!(parse_duration("2days"), Ok(Duration::new(172_800, 0)));
+        assert_eq!(parse_duration("365d"), Ok(Duration::new(31_536_000, 0)));
+        assert_eq!(parse_duration("1week"), Ok(Duration::new(604_800, 0)));
+        assert_eq!(parse_duration("7weeks"), Ok(Duration::new(4_233_600, 0)));
+        assert_eq!(parse_duration("52w"), Ok(Duration::new(31_449_600, 0)));
+        assert_eq!(parse_duration("1month"), Ok(Duration::new(2_630_016, 0)));
+        assert_eq!(parse_duration("3months"), Ok(Duration::new(3*2_630_016, 0)));
+        assert_eq!(parse_duration("12M"), Ok(Duration::new(31_560_192, 0)));
+        assert_eq!(parse_duration("1year"), Ok(Duration::new(31_557_600, 0)));
+        assert_eq!(parse_duration("7years"), Ok(Duration::new(7*31_557_600, 0)));
+        assert_eq!(parse_duration("17y"), Ok(Duration::new(536_479_200, 0)));
     }
 
     #[test]
@@ -365,7 +366,7 @@ mod test {
     #[test]
     fn random_second() {
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, 253370764800);
+            let sec = rand::thread_rng().gen_range(0, 253_370_764_800);
             let d = Duration::new(sec, 0);
             assert_eq!(d,
                 parse_duration(&format_duration(d).to_string()).unwrap());
@@ -375,7 +376,7 @@ mod test {
     #[test]
     fn random_any() {
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, 253370764800);
+            let sec = rand::thread_rng().gen_range(0, 253_370_764_800);
             let nanos = rand::thread_rng().gen_range(0, 1_000_000_000);
             let d = Duration::new(sec, nanos);
             assert_eq!(d,

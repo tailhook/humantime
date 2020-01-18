@@ -350,7 +350,7 @@ impl fmt::Display for Rfc3339Timestamp {
             buf[25] = b'0' + (nanos / 1_000 % 10) as u8;
             buf[26] = b'0' + (nanos / 100 % 10) as u8;
             buf[27] = b'0' + (nanos / 10 % 10) as u8;
-            buf[28] = b'0' + (nanos % 10) as u8;
+            buf[28] = b'0' + (nanos / 1 % 10) as u8;
             // 29th is 'Z'
             29
         };

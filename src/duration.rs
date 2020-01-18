@@ -285,7 +285,7 @@ impl fmt::Display for FormattedDuration {
         let micros = nanos / 1000 % 1000;
         let nanosec = nanos % 1000;
 
-        let started = &mut false;
+        let ref mut started = false;
         item_plural(f, started, "year", years)?;
         item_plural(f, started, "month", months)?;
         item_plural(f, started, "day", days)?;

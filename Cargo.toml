@@ -20,4 +20,4 @@ path = "src/lib.rs"
 [dev-dependencies]
 time = "0.1"
 chrono = "0.4"
-rand = "0.7"
+rand = "0.6"

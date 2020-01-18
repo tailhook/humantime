@@ -11,7 +11,7 @@ before_cache:
 jobs:
   include:
   - os: linux
-    rust: 1.32.0
+    rust: 1.31.0
   - os: linux
     rust: stable
   - os: linux

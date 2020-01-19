@@ -15,6 +15,7 @@
 //! [serde-humantime]: https://docs.rs/serde-humantime/0.1.1/serde_humantime/
 //! [humantime-serde]: https://docs.rs/humantime-serde
 
+#![forbid(unsafe_code)]
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 

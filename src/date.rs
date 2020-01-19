@@ -356,7 +356,7 @@ impl fmt::Display for Rfc3339Timestamp {
         };
 
         // we know our chars are all ascii
-        f.write_str(unsafe { str::from_utf8_unchecked(&buf[..=offset]) })
+        f.write_str(str::from_utf8(&buf[..=offset]).expect("Conversion to utf8 failed"))
     }
 }
 

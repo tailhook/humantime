@@ -46,11 +46,16 @@ impl fmt::Display for Error {
         match self {
             Error::InvalidCharacter(offset) => write!(f, "invalid character at {}", offset),
             Error::NumberExpected(offset) => write!(f, "expected number at {}", offset),
+            Error::UnknownUnit(start, end) if start == end => write!(f,
+                "time unit needed at {}, for example 100ms or 100sec",
+                start+1,
+            ),
             Error::UnknownUnit(start, end) => write!(
                 f,
                 "unknown time unit at {}-{}, \
-                see documentation of `parse_duration` for the list of supported time units",
-                start, end
+                supported units: ns, us, ms, sec, min, hours, days, weeks, \
+                months, years (and few variations)",
+                start+1, end
             ),
             Error::NumberOverflow => write!(f, "number is too large"),
             Error::Empty => write!(f, "value was empty"),
@@ -409,5 +414,17 @@ mod test {
             Err(Error::NumberOverflow));
         assert_eq!(parse_duration("10000000000000y"),
             Err(Error::NumberOverflow));
+    }
+
+    #[test]
+    fn test_nice_error_message() {
+        assert_eq!(parse_duration("10").unwrap_err().to_string(),
+            "time unit needed at 3, for example 100ms or 100sec");
+        assert_eq!(parse_duration("10 months 1").unwrap_err().to_string(),
+            "time unit needed at 12, for example 100ms or 100sec");
+        assert_eq!(parse_duration("10nights").unwrap_err().to_string(),
+            "unknown time unit at 3-8, supported units: \
+            ns, us, ms, sec, min, hours, days, weeks, months, \
+            years (and few variations)");
     }
 }

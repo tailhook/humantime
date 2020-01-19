@@ -4,7 +4,7 @@ use std::str::Chars;
 use std::time::Duration;
 
 /// Error parsing human-friendly duration
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Error {
     /// Invalid character during parsing
     ///
@@ -28,7 +28,16 @@ pub enum Error {
     ///
     /// The two fields are start and end (exclusive) of the slice from
     /// the original string, containing errorneous value
-    UnknownUnit(usize, usize),
+    UnknownUnit {
+        /// Start of the invalid unit inside the original string
+        start: usize,
+        /// End of the invalid unit inside the original string
+        end: usize,
+        /// The unit verbatim
+        unit: String,
+        /// A number associated with the unit
+        value: u64,
+    },
     /// The numeric value is too large
     ///
     /// Usually this means value is too large to be useful. If user writes
@@ -46,17 +55,21 @@ impl fmt::Display for Error {
         match self {
             Error::InvalidCharacter(offset) => write!(f, "invalid character at {}", offset),
             Error::NumberExpected(offset) => write!(f, "expected number at {}", offset),
-            Error::UnknownUnit(start, end) if start == end => write!(f,
-                "time unit needed at {}, for example 100ms or 100sec",
-                start+1,
-            ),
-            Error::UnknownUnit(start, end) => write!(
-                f,
-                "unknown time unit at {}-{}, \
-                supported units: ns, us, ms, sec, min, hours, days, weeks, \
-                months, years (and few variations)",
-                start+1, end
-            ),
+            Error::UnknownUnit { unit, value, .. } if &unit == &"" => {
+                write!(f,
+                    "time unit needed, for example {0}sec or {0}ms",
+                    value,
+                )
+            }
+            Error::UnknownUnit { unit, .. } => {
+                write!(
+                    f,
+                    "unknown time unit {:?}, \
+                    supported units: ns, us, ms, sec, min, hours, days, \
+                    weeks, months, years (and few variations)",
+                    unit
+                )
+            }
             Error::NumberOverflow => write!(f, "number is too large"),
             Error::Empty => write!(f, "value was empty"),
         }
@@ -122,7 +135,13 @@ impl<'a> Parser<'a> {
             "weeks" | "week" | "w" => (n.mul(86400*7)?, 0),
             "months" | "month" | "M" => (n.mul(2_630_016)?, 0), // 30.44d
             "years" | "year" | "y" => (n.mul(31_557_600)?, 0), // 365.25d
-            _ => return Err(Error::UnknownUnit(start, end)),
+            _ => {
+                return Err(Error::UnknownUnit {
+                    start, end,
+                    unit: self.src[start..end].to_string(),
+                    value: n,
+                });
+            }
         };
         let mut nsec = self.current.1.add(nsec)?;
         if nsec > 1_000_000_000 {
@@ -418,12 +437,12 @@ mod test {
 
     #[test]
     fn test_nice_error_message() {
-        assert_eq!(parse_duration("10").unwrap_err().to_string(),
-            "time unit needed at 3, for example 100ms or 100sec");
+        assert_eq!(parse_duration("123").unwrap_err().to_string(),
+            "time unit needed, for example 123sec or 123ms");
         assert_eq!(parse_duration("10 months 1").unwrap_err().to_string(),
-            "time unit needed at 12, for example 100ms or 100sec");
+            "time unit needed, for example 1sec or 1ms");
         assert_eq!(parse_duration("10nights").unwrap_err().to_string(),
-            "unknown time unit at 3-8, supported units: \
+            "unknown time unit \"nights\", supported units: \
             ns, us, ms, sec, min, hours, days, weeks, months, \
             years (and few variations)");
     }

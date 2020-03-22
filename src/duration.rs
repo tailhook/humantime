@@ -207,7 +207,7 @@ impl<'a> Parser<'a> {
 /// The duration object is a concatenation of time spans. Where each time
 /// span is an integer number and a suffix. Supported suffixes:
 ///
-/// * `nsec`, `ns` -- microseconds
+/// * `nsec`, `ns` -- nanoseconds
 /// * `usec`, `us` -- microseconds
 /// * `msec`, `ms` -- milliseconds
 /// * `seconds`, `second`, `sec`, `s`

@@ -7,6 +7,7 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 keywords = ["time", "human", "human-friendly", "parser", "duration"]
 homepage = "https://github.com/tailhook/humantime"
+repository = "https://github.com/tailhook/humantime"
 documentation = "https://docs.rs/humantime"
 version = "2.0.0"
 edition = "2018"

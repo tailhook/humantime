@@ -286,7 +286,7 @@ fn item(f: &mut fmt::Formatter, started: &mut bool, name: &str, value: u32)
 }
 
 impl FormattedDuration {
-    /// Returns the [`Duration`][] that is being formatted.
+    /// Returns a reference to the [`Duration`][] that is being formatted.
     pub fn get_ref(&self) -> &Duration {
         &self.0
     }

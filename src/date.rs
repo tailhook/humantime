@@ -241,7 +241,7 @@ pub fn format_rfc3339_nanos(system_time: SystemTime) -> Rfc3339Timestamp {
 }
 
 impl Rfc3339Timestamp {
-    /// Returns the [`SystemTime`][] that is being formatted.
+    /// Returns a reference to the [`SystemTime`][] that is being formatted.
     pub fn get_ref(&self) -> &SystemTime {
         &self.0
     }

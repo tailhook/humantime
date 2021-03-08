@@ -309,12 +309,9 @@ impl fmt::Display for Rfc3339Timestamp {
             mon + 2
         };
 
-        let mut buf: [u8; 30] = [
-            // Too long to write as: b"0000-00-00T00:00:00.000000000Z"
-            b'0', b'0', b'0', b'0', b'-', b'0', b'0', b'-', b'0', b'0', b'T',
-            b'0', b'0', b':', b'0', b'0', b':', b'0', b'0',
-            b'.', b'0', b'0', b'0', b'0', b'0', b'0', b'0', b'0', b'0', b'Z',
-        ];
+        const BUF_INIT: [u8; 30] = *b"0000-00-00T00:00:00.000000000Z";
+
+        let mut buf: [u8; 30] = BUF_INIT;
         buf[0] = b'0' + (year / 1000) as u8;
         buf[1] = b'0' + (year / 100 % 10) as u8;
         buf[2] = b'0' + (year / 10 % 10) as u8;

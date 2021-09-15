@@ -69,11 +69,16 @@ enum Precision {
 pub struct Rfc3339Timestamp(SystemTime, Precision);
 
 #[inline]
+/// Converts two digits given in ASCII to its proper decimal representation.
 fn two_digits(b1: u8, b2: u8) -> Result<u64, Error> {
-    if b1 < b'0' || b2 < b'0' || b1 > b'9' || b2 > b'9' {
-        return Err(Error::InvalidDigit);
+    fn two_digits_inner(a: char, b: char) -> Option<u64> {
+        let a = a.to_digit(10)?;
+        let b = b.to_digit(10)?;
+
+        Some((a*10 + b) as u64)
     }
-    Ok(((b1 - b'0')*10 + (b2 - b'0')) as u64)
+
+    two_digits_inner(b1 as char, b2 as char).ok_or(Error::InvalidDigit)
 }
 
 /// Parse RFC3339 timestamp `2018-02-14T00:28:07Z`

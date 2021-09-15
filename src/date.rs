@@ -99,7 +99,7 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
 ///
 /// 1. Any precision of fractional digits `2018-02-14 00:28:07.133`.
 /// 2. Supports timestamp with or without either of `T` or `Z`
-/// 3. Anything valid for `parse_3339` is valid for this function
+/// 3. Anything valid for [`parse_rfc3339`](parse_rfc3339) is valid for this function
 ///
 /// Unsupported feature: localized timestamps. Only UTC is supported, even if
 /// `Z` is not specified.

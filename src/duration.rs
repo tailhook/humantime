@@ -55,7 +55,7 @@ impl fmt::Display for Error {
         match self {
             Error::InvalidCharacter(offset) => write!(f, "invalid character at {}", offset),
             Error::NumberExpected(offset) => write!(f, "expected number at {}", offset),
-            Error::UnknownUnit { unit, value, .. } if &unit == &"" => {
+            Error::UnknownUnit { unit, value, .. } if unit.is_empty() => {
                 write!(f,
                     "time unit needed, for example {0}sec or {0}ms",
                     value,
@@ -316,7 +316,7 @@ impl fmt::Display for FormattedDuration {
         let micros = nanos / 1000 % 1000;
         let nanosec = nanos % 1000;
 
-        let ref mut started = false;
+        let started = &mut false;
         item_plural(f, started, "year", years)?;
         item_plural(f, started, "month", months)?;
         item_plural(f, started, "day", days)?;

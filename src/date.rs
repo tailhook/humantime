@@ -92,7 +92,7 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
         return Err(Error::InvalidFormat);
     }
     let b = s.as_bytes();
-    if b[10] != b'T' || b[b.len()-1] != b'Z' {
+    if b[10] != b'T' || b.last() != Some(&b'Z') {
         return Err(Error::InvalidFormat);
     }
     parse_rfc3339_weak(s)
@@ -133,10 +133,9 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     }
     // TODO(tailhook) should we check that leaps second is only on midnight ?
     if second == 60 {
-        second = 59
-    };
-    let leap_years = ((year - 1) - 1968) / 4 - ((year - 1) - 1900) / 100 +
-                     ((year - 1) - 1600) / 400;
+        second = 59;
+    }
+
     let leap = is_leap_year(year);
     let (mut ydays, mdays) = match month {
         1 => (0, 31),
@@ -161,6 +160,8 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     if leap && month > 2 {
         ydays += 1;
     }
+
+    let leap_years = ((year - 1) - 1968) / 4 - ((year - 1) - 1900) / 100 + ((year - 1) - 1600) / 400;
     let days = (year - 1970) * 365 + leap_years + ydays;
 
     let time = second + minute * 60 + hour * 3600;
@@ -172,14 +173,12 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
             if b[idx] == b'Z' {
                 if idx == b.len()-1 {
                     break;
-                } else {
-                    return Err(Error::InvalidDigit);
                 }
-            }
-            if b[idx] < b'0' || b[idx] > b'9' {
+
                 return Err(Error::InvalidDigit);
             }
-            nanos += mult * (b[idx] - b'0') as u32;
+
+            nanos += mult * (b[idx] as char).to_digit(10).ok_or(Error::InvalidDigit)?;
             mult /= 10;
         }
     } else if b.len() != 19 && (b.len() > 20 || b[19] != b'Z') {
@@ -359,7 +358,7 @@ impl fmt::Display for Rfc3339Timestamp {
             buf[25] = b'0' + (nanos / 1_000 % 10) as u8;
             buf[26] = b'0' + (nanos / 100 % 10) as u8;
             buf[27] = b'0' + (nanos / 10 % 10) as u8;
-            buf[28] = b'0' + (nanos / 1 % 10) as u8;
+            buf[28] = b'0' + (nanos % 10) as u8;
             // 29th is 'Z'
             29
         };

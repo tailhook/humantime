@@ -132,9 +132,9 @@ impl<'a> Parser<'a> {
             => (n.mul(60)?, 0),
             "hours" | "hour" | "hr" | "hrs" | "h" => (n.mul(3600)?, 0),
             "days" | "day" | "d" => (n.mul(86400)?, 0),
-            "weeks" | "week" | "w" => (n.mul(86400*7)?, 0),
+            "weeks" | "week" | "wks" | "wk" | "w" => (n.mul(86400*7)?, 0),
             "months" | "month" | "M" => (n.mul(2_630_016)?, 0), // 30.44d
-            "years" | "year" | "y" => (n.mul(31_557_600)?, 0), // 365.25d
+            "years" | "year" | "yrs" | "yr" | "y" => (n.mul(31_557_600)?, 0), // 365.25d
             _ => {
                 return Err(Error::UnknownUnit {
                     start, end,
@@ -214,9 +214,9 @@ impl<'a> Parser<'a> {
 /// * `minutes`, `minute`, `min`, `m`
 /// * `hours`, `hour`, `hr`, `h`
 /// * `days`, `day`, `d`
-/// * `weeks`, `week`, `w`
+/// * `weeks`, `week`, `wks`, `wk`, `w`
 /// * `months`, `month`, `M` -- defined as 30.44 days
-/// * `years`, `year`, `y` -- defined as 365.25 days
+/// * `years`, `year`, `yrs`, `yr`, `y` -- defined as 365.25 days
 ///
 /// # Examples
 ///
@@ -371,11 +371,15 @@ mod test {
         assert_eq!(parse_duration("1week"), Ok(Duration::new(604_800, 0)));
         assert_eq!(parse_duration("7weeks"), Ok(Duration::new(4_233_600, 0)));
         assert_eq!(parse_duration("52w"), Ok(Duration::new(31_449_600, 0)));
+        assert_eq!(parse_duration("100wk"), Ok(Duration::new(60_480_000, 0)));
+        assert_eq!(parse_duration("104wks"), Ok(Duration::new(2*31_449_600, 0)));
         assert_eq!(parse_duration("1month"), Ok(Duration::new(2_630_016, 0)));
         assert_eq!(parse_duration("3months"), Ok(Duration::new(3*2_630_016, 0)));
         assert_eq!(parse_duration("12M"), Ok(Duration::new(31_560_192, 0)));
         assert_eq!(parse_duration("1year"), Ok(Duration::new(31_557_600, 0)));
         assert_eq!(parse_duration("7years"), Ok(Duration::new(7*31_557_600, 0)));
+        assert_eq!(parse_duration("10yr"), Ok(Duration::new(10*31_557_600, 0)));
+        assert_eq!(parse_duration("15yrs"), Ok(Duration::new(15*31_557_600, 0)));
         assert_eq!(parse_duration("17y"), Ok(Duration::new(536_479_200, 0)));
     }
 

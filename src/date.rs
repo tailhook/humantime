@@ -372,6 +372,7 @@ impl fmt::Display for Rfc3339Timestamp {
 mod test {
     use std::str::from_utf8;
     use std::time::{UNIX_EPOCH, SystemTime, Duration};
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
     use rand::Rng;
 
@@ -381,8 +382,7 @@ mod test {
     use super::max;
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
-        let s = time::at_utc(time::Timespec { sec: sec as i64, nsec: 0 })
-                  .rfc3339().to_string();
+        let s = OffsetDateTime::from_unix_timestamp(sec as i64).unwrap().format(&Rfc3339).unwrap();
         let time = UNIX_EPOCH + Duration::new(sec, 0);
         (s, time)
     }
@@ -517,7 +517,7 @@ mod test {
         let upper = SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
             .as_secs();
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, upper);
+            let sec = rand::thread_rng().gen_range(0..upper);
             let (s, time) = from_sec(sec);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);
@@ -527,7 +527,7 @@ mod test {
     #[test]
     fn random_wide_range() {
         for _ in 0..100_000 {
-            let sec = rand::thread_rng().gen_range(0, max::SECONDS);
+            let sec = rand::thread_rng().gen_range(0..max::SECONDS);
             let (s, time) = from_sec(sec);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);

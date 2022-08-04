@@ -382,7 +382,8 @@ mod test {
     use super::max;
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
-        let s = OffsetDateTime::from_unix_timestamp(sec as i64).unwrap().format(&Rfc3339).unwrap();
+        let s = OffsetDateTime::from_unix_timestamp(sec as i64).unwrap()
+            .format(&Rfc3339).unwrap();
         let time = UNIX_EPOCH + Duration::new(sec, 0);
         (s, time)
     }

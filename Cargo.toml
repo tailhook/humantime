@@ -1,21 +1,21 @@
 [package]
-name = "humantime"
+name = "cyborgtime"
 description = """
     A parser and formatter for std::time::{Duration, SystemTime}
 """
 license = "MIT/Apache-2.0"
 readme = "README.md"
-keywords = ["time", "human", "human-friendly", "parser", "duration"]
-homepage = "https://github.com/tailhook/humantime"
-repository = "https://github.com/tailhook/humantime"
-documentation = "https://docs.rs/humantime"
+keywords = ["time", "cyborg", "cyborg-friendly", "parser", "duration"]
+homepage = "https://github.com/cyborg-rs/cyborgtime"
+repository = "https://github.com/cyborg-rs/cyborgtime"
+documentation = "https://docs.rs/cyborgtime"
 version = "2.1.0"
 edition = "2018"
-authors = ["Paul Colomiets <paul@colomiets.name>"]
+authors = ["Paul Colomiets <paul@colomiets.name>", "The Internet Cyborgs Collective"]
 categories = ["date-and-time"]
 
 [lib]
-name = "humantime"
+name = "cyborgtime"
 path = "src/lib.rs"
 
 [dev-dependencies]

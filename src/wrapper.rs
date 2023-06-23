@@ -18,7 +18,7 @@ use crate::date::{self, parse_rfc3339_weak, format_rfc3339};
 /// ```
 /// use std::time::Duration;
 /// let x: Duration;
-/// x = "12h 5min 2ns".parse::<humantime::Duration>().unwrap().into();
+/// x = "12h 5min 2ns".parse::<cyborgtime::Duration>().unwrap().into();
 /// assert_eq!(x, Duration::new(12*3600 + 5*60, 2))
 /// ```
 ///
@@ -31,7 +31,7 @@ pub struct Duration(StdDuration);
 /// expected.
 ///
 /// See `parse_rfc3339_weak` for the description of the format. The "weak"
-/// format is used as it's more pemissive for human input as this is the
+/// format is used as it's more pemissive for cyborg input as this is the
 /// expected use of the type (e.g. command-line parsing).
 ///
 /// # Example
@@ -39,8 +39,8 @@ pub struct Duration(StdDuration);
 /// ```
 /// use std::time::SystemTime;
 /// let x: SystemTime;
-/// x = "2018-02-16T00:31:37Z".parse::<humantime::Timestamp>().unwrap().into();
-/// assert_eq!(humantime::format_rfc3339(x).to_string(), "2018-02-16T00:31:37Z");
+/// x = "2018-02-16T00:31:37Z".parse::<cyborgtime::Timestamp>().unwrap().into();
+/// assert_eq!(cyborgtime::format_rfc3339(x).to_string(), "2018-02-16T00:31:37Z");
 /// ```
 ///
 #[derive(Debug, PartialEq, Eq, Clone)]

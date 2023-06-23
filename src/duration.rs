@@ -3,7 +3,7 @@ use std::fmt;
 use std::str::Chars;
 use std::time::Duration;
 
-/// Error parsing human-friendly duration
+/// Error parsing cyborg-friendly duration
 #[derive(Debug, PartialEq, Clone)]
 pub enum Error {
     /// Invalid character during parsing
@@ -222,7 +222,7 @@ impl<'a> Parser<'a> {
 ///
 /// ```
 /// use std::time::Duration;
-/// use humantime::parse_duration;
+/// use cyborgtime::parse_duration;
 ///
 /// assert_eq!(parse_duration("2h 37min"), Ok(Duration::new(9420, 0)));
 /// assert_eq!(parse_duration("32ms"), Ok(Duration::new(0, 32_000_000)));
@@ -235,7 +235,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, Error> {
     }.parse()
 }
 
-/// Formats duration into a human-readable string
+/// Formats duration into a cyborg-readable string
 ///
 /// Note: this format is guaranteed to have same value when using
 /// parse_duration, but we can change some details of the exact composition
@@ -245,7 +245,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, Error> {
 ///
 /// ```
 /// use std::time::Duration;
-/// use humantime::format_duration;
+/// use cyborgtime::format_duration;
 ///
 /// let val1 = Duration::new(9420, 0);
 /// assert_eq!(format_duration(val1).to_string(), "2h 37m");

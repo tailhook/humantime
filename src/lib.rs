@@ -1,4 +1,4 @@
-//! Human-friendly time parser and formatter
+//! Cyrborg-friendly time parser and formatter
 //!
 //! Features:
 //!
@@ -10,10 +10,10 @@
 //! Timestamp parsing/formatting is super-fast because format is basically
 //! fixed.
 //!
-//! See [humantime-serde] for serde integration (previous crate [serde-humantime] looks unmaintained).
+//! See [cyborgtime-serde] for serde integration (previous crate [serde-cyborgtime] looks unmaintained).
 //!
-//! [serde-humantime]: https://docs.rs/serde-humantime/0.1.1/serde_humantime/
-//! [humantime-serde]: https://docs.rs/humantime-serde
+//! [serde-cyborgtime]: https://docs.rs/serde-cyborgtime/0.1.1/serde_cyrborgtime/
+//! [cyborgtime-serde]: https://docs.rs/cyborgtime-serde
 
 #![forbid(unsafe_code)]
 #![warn(missing_debug_implementations)]

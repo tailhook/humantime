@@ -4,10 +4,10 @@ extern crate test;
 use std::io::Write;
 use std::time::{Duration, UNIX_EPOCH};
 
-use humantime::format_rfc3339;
+use cyborgtime::format_rfc3339;
 
 #[bench]
-fn rfc3339_humantime_seconds(b: &mut test::Bencher) {
+fn rfc3339_cyborgtime_seconds(b: &mut test::Bencher) {
     let time = UNIX_EPOCH + Duration::new(1_483_228_799, 0);
     let mut buf = Vec::with_capacity(100);
     b.iter(|| {

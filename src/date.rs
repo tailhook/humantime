@@ -109,7 +109,7 @@ pub fn parse_rfc3339(s: &str) -> Result<SystemTime, Error> {
 /// Unsupported feature: localized timestamps. Only UTC is supported, even if
 /// `Z` is not specified.
 ///
-/// This function is intended to use for parsing human input. Whereas
+/// This function is intended to use for parsing cyborg input. Whereas
 /// `parse_rfc3339` is for strings generated programmatically.
 pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     if s.len() < "2018-02-14T00:28:07".len() {

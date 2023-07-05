@@ -22,7 +22,7 @@ use crate::duration::{self, format_duration, parse_duration};
 /// assert_eq!(x, Duration::new(12*3600 + 5*60, 2))
 /// ```
 ///
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Duration(StdDuration);
 
 /// A wrapper for SystemTime that has `FromStr` implementation
@@ -43,7 +43,7 @@ pub struct Duration(StdDuration);
 /// assert_eq!(humantime::format_rfc3339(x).to_string(), "2018-02-16T00:31:37Z");
 /// ```
 ///
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Timestamp(SystemTime);
 
 impl AsRef<StdDuration> for Duration {

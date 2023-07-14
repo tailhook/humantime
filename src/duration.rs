@@ -453,4 +453,26 @@ mod test {
             ns, us, ms, sec, min, hours, days, weeks, months, \
             years (and few variations)");
     }
+
+    #[test]
+    fn test_error_cases() {
+        assert_eq!(
+            parse_duration("\0").unwrap_err().to_string(),
+            "expected number at 0"
+        );
+        assert_eq!(
+            parse_duration("\r").unwrap_err().to_string(),
+            "value was empty"
+        );
+        assert_eq!(
+            parse_duration("1~").unwrap_err().to_string(),
+            "invalid character at 1"
+        );
+        assert_eq!(
+            parse_duration("1Nå").unwrap_err().to_string(),
+            "invalid character at 2"
+        );
+        assert_eq!(parse_duration("222nsec221nanosmsec7s5msec572s").unwrap_err().to_string(),
+                   "unknown time unit \"nanosmsec\", supported units: ns, us, ms, sec, min, hours, days, weeks, months, years (and few variations)");
+    }
 }

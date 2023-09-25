@@ -77,7 +77,7 @@ impl fmt::Display for Error {
 }
 
 /// A wrapper type that allows you to Display a Duration
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct FormattedDuration(Duration);
 
 trait OverflowOp: Sized {
@@ -453,5 +453,10 @@ mod test {
             "unknown time unit \"nights\", supported units: \
             ns, us/µs, ms, sec, min, hours, days, weeks, months, \
             years (and few variations)");
+    }
+
+    #[test]
+    fn has_default() {
+        assert_eq!(crate::FormattedDuration::default().0, Duration::default());
     }
 }

@@ -324,7 +324,7 @@ impl fmt::Display for FormattedDuration {
         item(f, started, "m", minutes as u32)?;
         item(f, started, "s", seconds as u32)?;
         item(f, started, "ms", millis)?;
-        item(f, started, "us", micros)?;
+        item(f, started, "µs", micros)?;
         item(f, started, "ns", nanosec)?;
         Ok(())
     }

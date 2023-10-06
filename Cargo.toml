@@ -14,6 +14,9 @@ edition = "2018"
 authors = ["Paul Colomiets <paul@colomiets.name>"]
 categories = ["date-and-time"]
 
+[features]
+use_si_prefixes = []
+
 [lib]
 name = "humantime"
 path = "src/lib.rs"

@@ -324,7 +324,10 @@ impl fmt::Display for FormattedDuration {
         item(f, started, "m", minutes as u32)?;
         item(f, started, "s", seconds as u32)?;
         item(f, started, "ms", millis)?;
+        #[cfg(features = "use_si_prefixes")]
         item(f, started, "µs", micros)?;
+        #[cfg(not(features = "use_si_prefixes"))]
+        item(f, started, "us", micros)?;
         item(f, started, "ns", nanosec)?;
         Ok(())
     }
@@ -453,5 +456,17 @@ mod test {
             "unknown time unit \"nights\", supported units: \
             ns, us/µs, ms, sec, min, hours, days, weeks, months, \
             years (and few variations)");
+    }
+
+    #[cfg(features = "use_si_prefixes")]
+    #[test]
+    fn test_format_micros() {
+        assert_eq!(format_duration(Duration::from_micros(123)).to_string(), "123µs");
+    }
+
+    #[cfg(not(features = "use_si_prefixes"))]
+    #[test]
+    fn test_format_micros() {
+        assert_eq!(format_duration(Duration::from_micros(123)).to_string(), "123us");
     }
 }

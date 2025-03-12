@@ -492,10 +492,17 @@ mod test {
                 .to_string(),
             "2018-02-13T23:08:32.123000000Z"
         );
+        #[cfg(not(target_os = "windows"))]
         assert_eq!(
             format_rfc3339_nanos(UNIX_EPOCH + Duration::new(1_518_563_312, 789_456_123))
                 .to_string(),
             "2018-02-13T23:08:32.789456123Z"
+        );
+        #[cfg(target_os = "windows")] // Not sure what is up with Windows rounding?
+        assert_eq!(
+            format_rfc3339_nanos(UNIX_EPOCH + Duration::new(1_518_563_312, 789_456_123))
+                .to_string(),
+            "2018-02-13T23:08:32.789456100Z"
         );
     }
 

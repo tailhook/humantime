@@ -97,7 +97,7 @@ struct Parser<'a> {
     current: (u64, u64),
 }
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     fn off(&self) -> usize {
         self.src.len() - self.iter.as_str().len()
     }

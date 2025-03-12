@@ -509,7 +509,7 @@ mod test {
     #[test]
     fn upper_bound() {
         let max = UNIX_EPOCH + Duration::new(max::SECONDS, 0);
-        assert_eq!(parse_rfc3339(&max::TIMESTAMP).unwrap(), max);
+        assert_eq!(parse_rfc3339(max::TIMESTAMP).unwrap(), max);
         assert_eq!(format_rfc3339(max).to_string(), max::TIMESTAMP);
     }
 

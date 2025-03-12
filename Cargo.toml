@@ -1,22 +1,15 @@
 [package]
 name = "humantime"
-description = """
-    A parser and formatter for std::time::{Duration, SystemTime}
-"""
-license = "MIT/Apache-2.0"
+description = """A parser and formatter for std::time::{Duration, SystemTime}"""
+license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["time", "human", "human-friendly", "parser", "duration"]
-homepage = "https://github.com/tailhook/humantime"
-repository = "https://github.com/tailhook/humantime"
+homepage = "https://github.com/chronotope/humantime"
+repository = "https://github.com/chronotope/humantime"
 documentation = "https://docs.rs/humantime"
 version = "2.2.0"
 edition = "2018"
-authors = ["Paul Colomiets <paul@colomiets.name>"]
 categories = ["date-and-time"]
-
-[lib]
-name = "humantime"
-path = "src/lib.rs"
 
 [dev-dependencies]
 bencher = "0.1.5"

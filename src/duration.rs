@@ -396,7 +396,7 @@ mod test {
     #[test]
     fn random_second() {
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, 253_370_764_800);
+            let sec = rand::rng().random_range(0..253_370_764_800);
             let d = Duration::new(sec, 0);
             assert_eq!(d, parse_duration(&format_duration(d).to_string()).unwrap());
         }
@@ -405,8 +405,8 @@ mod test {
     #[test]
     fn random_any() {
         for _ in 0..10000 {
-            let sec = rand::thread_rng().gen_range(0, 253_370_764_800);
-            let nanos = rand::thread_rng().gen_range(0, 1_000_000_000);
+            let sec = rand::rng().random_range(0..253_370_764_800);
+            let nanos = rand::rng().random_range(0..1_000_000_000);
             let d = Duration::new(sec, nanos);
             assert_eq!(d, parse_duration(&format_duration(d).to_string()).unwrap());
         }

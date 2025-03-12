@@ -379,6 +379,8 @@ mod test {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use rand::Rng;
+    use time::format_description::well_known::Rfc3339;
+    use time::UtcDateTime;
 
     use super::format_rfc3339_nanos;
     use super::max;
@@ -386,12 +388,10 @@ mod test {
     use super::{format_rfc3339_micros, format_rfc3339_millis};
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
-        let s = time::at_utc(time::Timespec {
-            sec: sec as i64,
-            nsec: 0,
-        })
-        .rfc3339()
-        .to_string();
+        let s = UtcDateTime::from_unix_timestamp(sec as i64)
+            .unwrap()
+            .format(&Rfc3339)
+            .unwrap();
         let time = UNIX_EPOCH + Duration::new(sec, 0);
         (s, time)
     }

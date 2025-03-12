@@ -1,10 +1,10 @@
-use std::str::FromStr;
-use std::ops::Deref;
 use std::fmt;
+use std::ops::Deref;
+use std::str::FromStr;
 use std::time::{Duration as StdDuration, SystemTime};
 
-use crate::duration::{self, parse_duration, format_duration};
-use crate::date::{self, parse_rfc3339_weak, format_rfc3339};
+use crate::date::{self, format_rfc3339, parse_rfc3339_weak};
+use crate::duration::{self, format_duration, parse_duration};
 
 /// A wrapper for duration that has `FromStr` implementation
 ///
@@ -47,20 +47,28 @@ pub struct Duration(StdDuration);
 pub struct Timestamp(SystemTime);
 
 impl AsRef<StdDuration> for Duration {
-    fn as_ref(&self) -> &StdDuration { &self.0 }
+    fn as_ref(&self) -> &StdDuration {
+        &self.0
+    }
 }
 
 impl Deref for Duration {
     type Target = StdDuration;
-    fn deref(&self) -> &StdDuration { &self.0 }
+    fn deref(&self) -> &StdDuration {
+        &self.0
+    }
 }
 
 impl Into<StdDuration> for Duration {
-    fn into(self) -> StdDuration { self.0 }
+    fn into(self) -> StdDuration {
+        self.0
+    }
 }
 
 impl From<StdDuration> for Duration {
-    fn from(dur: StdDuration) -> Duration { Duration(dur) }
+    fn from(dur: StdDuration) -> Duration {
+        Duration(dur)
+    }
 }
 
 impl FromStr for Duration {
@@ -77,20 +85,28 @@ impl fmt::Display for Duration {
 }
 
 impl AsRef<SystemTime> for Timestamp {
-    fn as_ref(&self) -> &SystemTime { &self.0 }
+    fn as_ref(&self) -> &SystemTime {
+        &self.0
+    }
 }
 
 impl Deref for Timestamp {
     type Target = SystemTime;
-    fn deref(&self) -> &SystemTime { &self.0 }
+    fn deref(&self) -> &SystemTime {
+        &self.0
+    }
 }
 
 impl Into<SystemTime> for Timestamp {
-    fn into(self) -> SystemTime { self.0 }
+    fn into(self) -> SystemTime {
+        self.0
+    }
 }
 
 impl From<SystemTime> for Timestamp {
-    fn from(dur: SystemTime) -> Timestamp { Timestamp(dur) }
+    fn from(dur: SystemTime) -> Timestamp {
+        Timestamp(dur)
+    }
 }
 
 impl FromStr for Timestamp {

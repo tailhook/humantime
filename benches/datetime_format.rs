@@ -18,15 +18,14 @@ fn rfc3339_humantime_seconds(b: &mut test::Bencher) {
 
 #[bench]
 fn rfc3339_chrono(b: &mut test::Bencher) {
-    use chrono::{DateTime, NaiveDateTime, Utc};
+    use chrono::format::Fixed::*;
     use chrono::format::Item;
     use chrono::format::Item::*;
     use chrono::format::Numeric::*;
-    use chrono::format::Fixed::*;
     use chrono::format::Pad::*;
+    use chrono::{DateTime, NaiveDateTime, Utc};
 
-    let time = DateTime::<Utc>::from_utc(
-        NaiveDateTime::from_timestamp(1_483_228_799, 0), Utc);
+    let time = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(1_483_228_799, 0), Utc);
     let mut buf = Vec::with_capacity(100);
 
     // formatting code from env_logger
@@ -47,10 +46,13 @@ fn rfc3339_chrono(b: &mut test::Bencher) {
         ]
     };
 
-
     b.iter(|| {
         buf.truncate(0);
-        write!(&mut buf, "{}", time.format_with_items(ITEMS.iter().cloned()))
-            .unwrap()
+        write!(
+            &mut buf,
+            "{}",
+            time.format_with_items(ITEMS.iter().cloned())
+        )
+        .unwrap()
     });
 }

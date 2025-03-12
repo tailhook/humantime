@@ -9,9 +9,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
     not(all(target_arch = "wasm32", not(target_os = "emscripten")))
 ))]
 mod max {
-    pub const SECONDS: u64 = ::std::i32::MAX as u64;
+    pub(super) const SECONDS: u64 = ::std::i32::MAX as u64;
     #[allow(unused)]
-    pub const TIMESTAMP: &'static str = "2038-01-19T03:14:07Z";
+    pub(super) const TIMESTAMP: &'static str = "2038-01-19T03:14:07Z";
 }
 
 #[cfg(any(
@@ -20,9 +20,9 @@ mod max {
     all(target_arch = "wasm32", not(target_os = "emscripten")),
 ))]
 mod max {
-    pub const SECONDS: u64 = 253_402_300_800 - 1; // last second of year 9999
+    pub(super) const SECONDS: u64 = 253_402_300_800 - 1; // last second of year 9999
     #[allow(unused)]
-    pub const TIMESTAMP: &str = "9999-12-31T23:59:59Z";
+    pub(super) const TIMESTAMP: &str = "9999-12-31T23:59:59Z";
 }
 
 /// Error parsing datetime (timestamp)

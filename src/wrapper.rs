@@ -59,9 +59,9 @@ impl Deref for Duration {
     }
 }
 
-impl Into<StdDuration> for Duration {
-    fn into(self) -> StdDuration {
-        self.0
+impl From<Duration> for StdDuration {
+    fn from(val: Duration) -> Self {
+        val.0
     }
 }
 
@@ -97,9 +97,9 @@ impl Deref for Timestamp {
     }
 }
 
-impl Into<SystemTime> for Timestamp {
-    fn into(self) -> SystemTime {
-        self.0
+impl From<Timestamp> for SystemTime {
+    fn from(val: Timestamp) -> Self {
+        val.0
     }
 }
 

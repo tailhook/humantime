@@ -1,19 +1,19 @@
 use std::error::Error as StdError;
 use std::fmt;
 use std::str;
-use std::time::{SystemTime, Duration, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-#[cfg(target_os="cloudabi")]
+#[cfg(target_os = "cloudabi")]
 mod max {
     pub const SECONDS: u64 = ::std::u64::MAX / 1_000_000_000;
     #[allow(unused)]
     pub const TIMESTAMP: &'static str = "2554-07-21T23:34:33Z";
 }
 #[cfg(all(
-    target_pointer_width="32",
-    not(target_os="cloudabi"),
-    not(target_os="windows"),
-    not(all(target_arch="wasm32", not(target_os="emscripten")))
+    target_pointer_width = "32",
+    not(target_os = "cloudabi"),
+    not(target_os = "windows"),
+    not(all(target_arch = "wasm32", not(target_os = "emscripten")))
 ))]
 mod max {
     pub const SECONDS: u64 = ::std::i32::MAX as u64;
@@ -22,12 +22,12 @@ mod max {
 }
 
 #[cfg(any(
-    target_pointer_width="64",
-    target_os="windows",
-    all(target_arch="wasm32", not(target_os="emscripten")),
+    target_pointer_width = "64",
+    target_os = "windows",
+    all(target_arch = "wasm32", not(target_os = "emscripten")),
 ))]
 mod max {
-    pub const SECONDS: u64 = 253_402_300_800-1;  // last second of year 9999
+    pub const SECONDS: u64 = 253_402_300_800 - 1; // last second of year 9999
     #[allow(unused)]
     pub const TIMESTAMP: &str = "9999-12-31T23:59:59Z";
 }
@@ -75,7 +75,7 @@ fn two_digits(b1: u8, b2: u8) -> Result<u64, Error> {
         let a = a.to_digit(10)?;
         let b = b.to_digit(10)?;
 
-        Some((a*10 + b) as u64)
+        Some((a * 10 + b) as u64)
     }
 
     two_digits_inner(b1 as char, b2 as char).ok_or(Error::InvalidDigit)
@@ -115,9 +115,12 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     if s.len() < "2018-02-14T00:28:07".len() {
         return Err(Error::InvalidFormat);
     }
-    let b = s.as_bytes();  // for careless slicing
-    if b[4] != b'-' || b[7] != b'-' || (b[10] != b'T' && b[10] != b' ') ||
-       b[13] != b':' || b[16] != b':'
+    let b = s.as_bytes(); // for careless slicing
+    if b[4] != b'-'
+        || b[7] != b'-'
+        || (b[10] != b'T' && b[10] != b' ')
+        || b[13] != b':'
+        || b[16] != b':'
     {
         return Err(Error::InvalidFormat);
     }
@@ -161,7 +164,8 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
         ydays += 1;
     }
 
-    let leap_years = ((year - 1) - 1968) / 4 - ((year - 1) - 1900) / 100 + ((year - 1) - 1600) / 400;
+    let leap_years =
+        ((year - 1) - 1968) / 4 - ((year - 1) - 1900) / 100 + ((year - 1) - 1600) / 400;
     let days = (year - 1970) * 365 + leap_years + ydays;
 
     let time = second + minute * 60 + hour * 3600;
@@ -171,7 +175,7 @@ pub fn parse_rfc3339_weak(s: &str) -> Result<SystemTime, Error> {
     if b.get(19) == Some(&b'.') {
         for idx in 20..b.len() {
             if b[idx] == b'Z' {
-                if idx == b.len()-1 {
+                if idx == b.len() - 1 {
                     break;
                 }
 
@@ -255,20 +259,23 @@ impl fmt::Display for Rfc3339Timestamp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Precision::*;
 
-        let dur = self.0.duration_since(UNIX_EPOCH)
+        let dur = self
+            .0
+            .duration_since(UNIX_EPOCH)
             .expect("all times should be after the epoch");
         let secs_since_epoch = dur.as_secs();
         let nanos = dur.subsec_nanos();
 
-        if secs_since_epoch >= 253_402_300_800 { // year 9999
+        if secs_since_epoch >= 253_402_300_800 {
+            // year 9999
             return Err(fmt::Error);
         }
 
         /* 2000-03-01 (mod 400 year, immediately after feb29 */
         const LEAPOCH: i64 = 11017;
-        const DAYS_PER_400Y: i64 = 365*400 + 97;
-        const DAYS_PER_100Y: i64 = 365*100 + 24;
-        const DAYS_PER_4Y: i64 = 365*4 + 1;
+        const DAYS_PER_400Y: i64 = 365 * 400 + 97;
+        const DAYS_PER_100Y: i64 = 365 * 100 + 24;
+        const DAYS_PER_4Y: i64 = 365 * 4 + 1;
 
         let days = (secs_since_epoch / 86400) as i64 - LEAPOCH;
         let secs_of_day = secs_since_epoch % 86400;
@@ -282,21 +289,26 @@ impl fmt::Display for Rfc3339Timestamp {
         }
 
         let mut c_cycles = remdays / DAYS_PER_100Y;
-        if c_cycles == 4 { c_cycles -= 1; }
+        if c_cycles == 4 {
+            c_cycles -= 1;
+        }
         remdays -= c_cycles * DAYS_PER_100Y;
 
         let mut q_cycles = remdays / DAYS_PER_4Y;
-        if q_cycles == 25 { q_cycles -= 1; }
+        if q_cycles == 25 {
+            q_cycles -= 1;
+        }
         remdays -= q_cycles * DAYS_PER_4Y;
 
         let mut remyears = remdays / 365;
-        if remyears == 4 { remyears -= 1; }
+        if remyears == 4 {
+            remyears -= 1;
+        }
         remdays -= remyears * 365;
 
-        let mut year = 2000 +
-            remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles;
+        let mut year = 2000 + remyears + 4 * q_cycles + 100 * c_cycles + 400 * qc_cycles;
 
-        let months = [31,30,31,30,31,31,30,31,30,31,31,29];
+        let months = [31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31, 29];
         let mut mon = 0;
         for mon_len in months.iter() {
             mon += 1;
@@ -305,7 +317,7 @@ impl fmt::Display for Rfc3339Timestamp {
             }
             remdays -= *mon_len;
         }
-        let mday = remdays+1;
+        let mday = remdays + 1;
         let mon = if mon + 2 > 12 {
             year += 1;
             mon - 10
@@ -371,102 +383,127 @@ impl fmt::Display for Rfc3339Timestamp {
 #[cfg(test)]
 mod test {
     use std::str::from_utf8;
-    use std::time::{UNIX_EPOCH, SystemTime, Duration};
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
     use rand::Rng;
 
-    use super::{parse_rfc3339, parse_rfc3339_weak, format_rfc3339};
-    use super::{format_rfc3339_millis, format_rfc3339_micros};
-    use super::{format_rfc3339_nanos};
+    use super::format_rfc3339_nanos;
     use super::max;
+    use super::{format_rfc3339, parse_rfc3339, parse_rfc3339_weak};
+    use super::{format_rfc3339_micros, format_rfc3339_millis};
 
     fn from_sec(sec: u64) -> (String, SystemTime) {
-        let s = time::at_utc(time::Timespec { sec: sec as i64, nsec: 0 })
-                  .rfc3339().to_string();
+        let s = time::at_utc(time::Timespec {
+            sec: sec as i64,
+            nsec: 0,
+        })
+        .rfc3339()
+        .to_string();
         let time = UNIX_EPOCH + Duration::new(sec, 0);
         (s, time)
     }
 
     #[test]
-    #[cfg(all(target_pointer_width="32", target_os="linux"))]
+    #[cfg(all(target_pointer_width = "32", target_os = "linux"))]
     fn year_after_2038_fails_gracefully() {
         // next second
-        assert_eq!(parse_rfc3339("2038-01-19T03:14:08Z").unwrap_err(),
-                   super::Error::OutOfRange);
-        assert_eq!(parse_rfc3339("9999-12-31T23:59:59Z").unwrap_err(),
-                   super::Error::OutOfRange);
+        assert_eq!(
+            parse_rfc3339("2038-01-19T03:14:08Z").unwrap_err(),
+            super::Error::OutOfRange
+        );
+        assert_eq!(
+            parse_rfc3339("9999-12-31T23:59:59Z").unwrap_err(),
+            super::Error::OutOfRange
+        );
     }
 
     #[test]
     fn smoke_tests_parse() {
-        assert_eq!(parse_rfc3339("1970-01-01T00:00:00Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 0));
-        assert_eq!(parse_rfc3339("1970-01-01T00:00:01Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(1, 0));
-        assert_eq!(parse_rfc3339("2018-02-13T23:08:32Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(1_518_563_312, 0));
-        assert_eq!(parse_rfc3339("2012-01-01T00:00:00Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(1_325_376_000, 0));
+        assert_eq!(
+            parse_rfc3339("1970-01-01T00:00:00Z").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 0)
+        );
+        assert_eq!(
+            parse_rfc3339("1970-01-01T00:00:01Z").unwrap(),
+            UNIX_EPOCH + Duration::new(1, 0)
+        );
+        assert_eq!(
+            parse_rfc3339("2018-02-13T23:08:32Z").unwrap(),
+            UNIX_EPOCH + Duration::new(1_518_563_312, 0)
+        );
+        assert_eq!(
+            parse_rfc3339("2012-01-01T00:00:00Z").unwrap(),
+            UNIX_EPOCH + Duration::new(1_325_376_000, 0)
+        );
     }
 
     #[test]
     fn smoke_tests_format() {
         assert_eq!(
             format_rfc3339(UNIX_EPOCH + Duration::new(0, 0)).to_string(),
-            "1970-01-01T00:00:00Z");
+            "1970-01-01T00:00:00Z"
+        );
         assert_eq!(
             format_rfc3339(UNIX_EPOCH + Duration::new(1, 0)).to_string(),
-            "1970-01-01T00:00:01Z");
+            "1970-01-01T00:00:01Z"
+        );
         assert_eq!(
             format_rfc3339(UNIX_EPOCH + Duration::new(1_518_563_312, 0)).to_string(),
-            "2018-02-13T23:08:32Z");
+            "2018-02-13T23:08:32Z"
+        );
         assert_eq!(
             format_rfc3339(UNIX_EPOCH + Duration::new(1_325_376_000, 0)).to_string(),
-            "2012-01-01T00:00:00Z");
+            "2012-01-01T00:00:00Z"
+        );
     }
 
     #[test]
     fn smoke_tests_format_millis() {
         assert_eq!(
-            format_rfc3339_millis(UNIX_EPOCH +
-                Duration::new(0, 0)).to_string(),
-            "1970-01-01T00:00:00.000Z");
+            format_rfc3339_millis(UNIX_EPOCH + Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000Z"
+        );
         assert_eq!(
-            format_rfc3339_millis(UNIX_EPOCH +
-                Duration::new(1_518_563_312, 123_000_000)).to_string(),
-            "2018-02-13T23:08:32.123Z");
+            format_rfc3339_millis(UNIX_EPOCH + Duration::new(1_518_563_312, 123_000_000))
+                .to_string(),
+            "2018-02-13T23:08:32.123Z"
+        );
     }
 
     #[test]
     fn smoke_tests_format_micros() {
         assert_eq!(
-            format_rfc3339_micros(UNIX_EPOCH +
-                Duration::new(0, 0)).to_string(),
-            "1970-01-01T00:00:00.000000Z");
+            format_rfc3339_micros(UNIX_EPOCH + Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000000Z"
+        );
         assert_eq!(
-            format_rfc3339_micros(UNIX_EPOCH +
-                Duration::new(1_518_563_312, 123_000_000)).to_string(),
-            "2018-02-13T23:08:32.123000Z");
+            format_rfc3339_micros(UNIX_EPOCH + Duration::new(1_518_563_312, 123_000_000))
+                .to_string(),
+            "2018-02-13T23:08:32.123000Z"
+        );
         assert_eq!(
-            format_rfc3339_micros(UNIX_EPOCH +
-                Duration::new(1_518_563_312, 456_123_000)).to_string(),
-            "2018-02-13T23:08:32.456123Z");
+            format_rfc3339_micros(UNIX_EPOCH + Duration::new(1_518_563_312, 456_123_000))
+                .to_string(),
+            "2018-02-13T23:08:32.456123Z"
+        );
     }
 
     #[test]
     fn smoke_tests_format_nanos() {
         assert_eq!(
-            format_rfc3339_nanos(UNIX_EPOCH +
-                Duration::new(0, 0)).to_string(),
-            "1970-01-01T00:00:00.000000000Z");
+            format_rfc3339_nanos(UNIX_EPOCH + Duration::new(0, 0)).to_string(),
+            "1970-01-01T00:00:00.000000000Z"
+        );
         assert_eq!(
-            format_rfc3339_nanos(UNIX_EPOCH +
-                Duration::new(1_518_563_312, 123_000_000)).to_string(),
-            "2018-02-13T23:08:32.123000000Z");
+            format_rfc3339_nanos(UNIX_EPOCH + Duration::new(1_518_563_312, 123_000_000))
+                .to_string(),
+            "2018-02-13T23:08:32.123000000Z"
+        );
         assert_eq!(
-            format_rfc3339_nanos(UNIX_EPOCH +
-                Duration::new(1_518_563_312, 789_456_123)).to_string(),
-            "2018-02-13T23:08:32.789456123Z");
+            format_rfc3339_nanos(UNIX_EPOCH + Duration::new(1_518_563_312, 789_456_123))
+                .to_string(),
+            "2018-02-13T23:08:32.789456123Z"
+        );
     }
 
     #[test]
@@ -478,14 +515,17 @@ mod test {
 
     #[test]
     fn leap_second() {
-        assert_eq!(parse_rfc3339("2016-12-31T23:59:60Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(1_483_228_799, 0));
+        assert_eq!(
+            parse_rfc3339("2016-12-31T23:59:60Z").unwrap(),
+            UNIX_EPOCH + Duration::new(1_483_228_799, 0)
+        );
     }
 
     #[test]
     fn first_731_days() {
-        let year_start = 0;  // 1970
-        for day in 0..= 365 * 2 {  // scan leap year and non-leap year
+        let year_start = 0; // 1970
+        for day in 0..=365 * 2 {
+            // scan leap year and non-leap year
             let (s, time) = from_sec(year_start + day * 86400);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);
@@ -494,8 +534,9 @@ mod test {
 
     #[test]
     fn the_731_consecutive_days() {
-        let year_start = 1_325_376_000;  // 2012
-        for day in 0..= 365 * 2 {  // scan leap year and non-leap year
+        let year_start = 1_325_376_000; // 2012
+        for day in 0..=365 * 2 {
+            // scan leap year and non-leap year
             let (s, time) = from_sec(year_start + day * 86400);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);
@@ -505,7 +546,8 @@ mod test {
     #[test]
     fn all_86400_seconds() {
         let day_start = 1_325_376_000;
-        for second in 0..86400 {  // scan leap year and non-leap year
+        for second in 0..86400 {
+            // scan leap year and non-leap year
             let (s, time) = from_sec(day_start + second);
             assert_eq!(parse_rfc3339(&s).unwrap(), time);
             assert_eq!(format_rfc3339(time).to_string(), s);
@@ -514,7 +556,9 @@ mod test {
 
     #[test]
     fn random_past() {
-        let upper = SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+        let upper = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
             .as_secs();
         for _ in 0..10000 {
             let sec = rand::thread_rng().gen_range(0, upper);
@@ -536,56 +580,60 @@ mod test {
 
     #[test]
     fn milliseconds() {
-        assert_eq!(parse_rfc3339("1970-01-01T00:00:00.123Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 123_000_000));
-        assert_eq!(format_rfc3339(UNIX_EPOCH + Duration::new(0, 123_000_000))
-            .to_string(), "1970-01-01T00:00:00.123000000Z");
+        assert_eq!(
+            parse_rfc3339("1970-01-01T00:00:00.123Z").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 123_000_000)
+        );
+        assert_eq!(
+            format_rfc3339(UNIX_EPOCH + Duration::new(0, 123_000_000)).to_string(),
+            "1970-01-01T00:00:00.123000000Z"
+        );
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn zero_month() {
         parse_rfc3339("1970-00-01T00:00:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_month() {
         parse_rfc3339("1970-32-01T00:00:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn zero_day() {
         parse_rfc3339("1970-01-00T00:00:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_day() {
         parse_rfc3339("1970-12-35T00:00:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_day2() {
         parse_rfc3339("1970-02-30T00:00:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_second() {
         parse_rfc3339("1970-12-30T00:00:78Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_minute() {
         parse_rfc3339("1970-12-30T00:78:00Z").unwrap();
     }
 
     #[test]
-    #[should_panic(expected="OutOfRange")]
+    #[should_panic(expected = "OutOfRange")]
     fn big_hour() {
         parse_rfc3339("1970-12-30T24:00:00Z").unwrap();
     }
@@ -601,24 +649,34 @@ mod test {
 
     #[test]
     fn weak_smoke_tests() {
-        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 0));
+        assert_eq!(
+            parse_rfc3339_weak("1970-01-01 00:00:00").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 0)
+        );
         parse_rfc3339("1970-01-01 00:00:00").unwrap_err();
 
-        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00.000123").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 123_000));
+        assert_eq!(
+            parse_rfc3339_weak("1970-01-01 00:00:00.000123").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 123_000)
+        );
         parse_rfc3339("1970-01-01 00:00:00.000123").unwrap_err();
 
-        assert_eq!(parse_rfc3339_weak("1970-01-01T00:00:00.000123").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 123_000));
+        assert_eq!(
+            parse_rfc3339_weak("1970-01-01T00:00:00.000123").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 123_000)
+        );
         parse_rfc3339("1970-01-01T00:00:00.000123").unwrap_err();
 
-        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00.000123Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 123_000));
+        assert_eq!(
+            parse_rfc3339_weak("1970-01-01 00:00:00.000123Z").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 123_000)
+        );
         parse_rfc3339("1970-01-01 00:00:00.000123Z").unwrap_err();
 
-        assert_eq!(parse_rfc3339_weak("1970-01-01 00:00:00Z").unwrap(),
-                   UNIX_EPOCH + Duration::new(0, 0));
+        assert_eq!(
+            parse_rfc3339_weak("1970-01-01 00:00:00Z").unwrap(),
+            UNIX_EPOCH + Duration::new(0, 0)
+        );
         parse_rfc3339("1970-01-01 00:00:00Z").unwrap_err();
     }
 }

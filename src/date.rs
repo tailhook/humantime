@@ -3,15 +3,8 @@ use std::fmt;
 use std::str;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-#[cfg(target_os = "cloudabi")]
-mod max {
-    pub const SECONDS: u64 = ::std::u64::MAX / 1_000_000_000;
-    #[allow(unused)]
-    pub const TIMESTAMP: &'static str = "2554-07-21T23:34:33Z";
-}
 #[cfg(all(
     target_pointer_width = "32",
-    not(target_os = "cloudabi"),
     not(target_os = "windows"),
     not(all(target_arch = "wasm32", not(target_os = "emscripten")))
 ))]

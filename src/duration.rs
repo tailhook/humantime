@@ -65,7 +65,7 @@ impl fmt::Display for Error {
                 write!(
                     f,
                     "unknown time unit {:?}, \
-                    supported units: ns, us, ms, sec, min, hours, days, \
+                    supported units: ns, us/µs, ms, sec, min, hours, days, \
                     weeks, months, years (and few variations)",
                     unit
                 )
@@ -125,7 +125,7 @@ impl<'a> Parser<'a> {
     {
         let (mut sec, nsec) = match &self.src[start..end] {
             "nanos" | "nsec" | "ns" => (0u64, n),
-            "usec" | "us" => (0u64, n.mul(1000)?),
+            "usec" | "us" | "µs" => (0u64, n.mul(1000)?),
             "millis" | "msec" | "ms" => (0u64, n.mul(1_000_000)?),
             "seconds" | "second" | "secs" | "sec" | "s" => (n, 0),
             "minutes" | "minute" | "min" | "mins" | "m"
@@ -165,7 +165,7 @@ impl<'a> Parser<'a> {
                             .ok_or(Error::NumberOverflow)?;
                     }
                     c if c.is_whitespace() => {}
-                    'a'..='z' | 'A'..='Z' => {
+                    'a'..='z' | 'A'..='Z' | 'µ' => {
                         break;
                     }
                     _ => {
@@ -208,7 +208,7 @@ impl<'a> Parser<'a> {
 /// span is an integer number and a suffix. Supported suffixes:
 ///
 /// * `nsec`, `ns` -- nanoseconds
-/// * `usec`, `us` -- microseconds
+/// * `usec`, `us`, `µs` -- microseconds
 /// * `msec`, `ms` -- milliseconds
 /// * `seconds`, `second`, `sec`, `s`
 /// * `minutes`, `minute`, `min`, `m`
@@ -324,7 +324,7 @@ impl fmt::Display for FormattedDuration {
         item(f, started, "m", minutes as u32)?;
         item(f, started, "s", seconds as u32)?;
         item(f, started, "ms", millis)?;
-        item(f, started, "us", micros)?;
+        item(f, started, "µs", micros)?;
         item(f, started, "ns", nanosec)?;
         Ok(())
     }
@@ -347,6 +347,7 @@ mod test {
         assert_eq!(parse_duration("33ns"), Ok(Duration::new(0, 33)));
         assert_eq!(parse_duration("3usec"), Ok(Duration::new(0, 3000)));
         assert_eq!(parse_duration("78us"), Ok(Duration::new(0, 78000)));
+        assert_eq!(parse_duration("163µs"), Ok(Duration::new(0, 163000)));
         assert_eq!(parse_duration("31msec"), Ok(Duration::new(0, 31_000_000)));
         assert_eq!(parse_duration("31millis"), Ok(Duration::new(0, 31_000_000)));
         assert_eq!(parse_duration("6ms"), Ok(Duration::new(0, 6_000_000)));
@@ -450,7 +451,7 @@ mod test {
             "time unit needed, for example 1sec or 1ms");
         assert_eq!(parse_duration("10nights").unwrap_err().to_string(),
             "unknown time unit \"nights\", supported units: \
-            ns, us, ms, sec, min, hours, days, weeks, months, \
+            ns, us/µs, ms, sec, min, hours, days, weeks, months, \
             years (and few variations)");
     }
 }

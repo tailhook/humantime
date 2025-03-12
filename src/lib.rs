@@ -16,8 +16,7 @@
 //! [humantime-serde]: https://docs.rs/humantime-serde
 
 #![forbid(unsafe_code)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
+#![warn(missing_debug_implementations, missing_docs, unreachable_pub)]
 
 mod date;
 mod duration;

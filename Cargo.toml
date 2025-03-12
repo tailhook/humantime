@@ -19,6 +19,15 @@ name = "humantime"
 path = "src/lib.rs"
 
 [dev-dependencies]
+bencher = "0.1.5"
 time = { version = "0.3", features = ["formatting"] }
 chrono = "0.4"
 rand = "0.9"
+
+[[bench]]
+name = "datetime_format"
+harness = false
+
+[[bench]]
+name = "datetime_parse"
+harness = false

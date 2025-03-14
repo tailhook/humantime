@@ -130,6 +130,10 @@ impl Parser<'_> {
             "months" | "month" | "M" => (n.mul(2_630_016)?, 0), // 30.44d
             "years" | "year" | "y" => (n.mul(31_557_600)?, 0),  // 365.25d
             _ => {
+                if self.src.chars().all(|c| c == '0') {
+                    self.current = (0, 0);
+                    return Ok(())
+                }
                 return Err(Error::UnknownUnit {
                     start,
                     end,
@@ -373,6 +377,11 @@ mod test {
             Ok(Duration::new(7 * 31_557_600, 0))
         );
         assert_eq!(parse_duration("17y"), Ok(Duration::new(536_479_200, 0)));
+    }
+
+    #[test]
+    fn allow_0_with_no_unit() {
+        assert_eq!(parse_duration("0"), Ok(Duration::new(0, 0)));
     }
 
     #[test]
